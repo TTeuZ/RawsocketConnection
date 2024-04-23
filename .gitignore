@@ -34,3 +34,6 @@
 # Exec Files
 Client
 Server
+
+# VS Code
+.vscode

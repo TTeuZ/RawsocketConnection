@@ -2,7 +2,8 @@ clientName = Client
 serverName = Server
 
 flags = -Wall -O3
-objects = $(patsubst %.cpp, %.o, $(wildcard src/**/*.cpp))
+objects = $(patsubst %.cpp, %.o, $(wildcard utils/**/*.cpp))
+objects += $(patsubst %.cpp, %.o, $(wildcard network/**/*.cpp))
 libs = -lboost_program_options
 
 .PHONY: all client server clean
@@ -24,15 +25,15 @@ $(serverName): server.o $(objects)
 	g++ -o $(serverName) server.o $(objects) $(flags) $(libs)
 
 client.o: client.cpp
-	g++ -c client.cpp $(flags) $(libs)
+	g++ -c client.cpp $(flags)
 
 server.o: server.cpp
-	g++ -c server.cpp $(flags) $(libs)
+	g++ -c server.cpp $(flags)
 
 %.o : %.cpp
-	g++ -c $< -o $@ $(flags) $(libs)
+	g++ -c $< -o $@ $(flags)
 
 # ----------------------------------------------------------------------
 
 clean:
-	rm -f *.o src/**/*.o $(clientName) $(serverName)
+	rm -f *.o utils/**/*.o network/**/*.o $(clientName) $(serverName)
