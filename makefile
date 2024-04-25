@@ -6,7 +6,7 @@ objects = $(patsubst %.cpp, %.o, $(wildcard utils/**/*.cpp))
 objects += $(patsubst %.cpp, %.o, $(wildcard network/**/*.cpp))
 libs = -lboost_program_options
 
-.PHONY: all client server clean
+.PHONY: all client server clean purge
 
 # ----------------------------------------------------------------------
 
@@ -36,4 +36,7 @@ server.o: server.cpp
 # ----------------------------------------------------------------------
 
 clean:
+	rm -f *.o utils/**/*.o network/**/*.o
+
+purge:
 	rm -f *.o utils/**/*.o network/**/*.o $(clientName) $(serverName)

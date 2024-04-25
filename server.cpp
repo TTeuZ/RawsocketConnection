@@ -3,9 +3,9 @@
 #include "utils/Argparser/Argparser.hpp"
 
 int main(int argc, char** argv) {
-    bool loopback;
+  bool loopback;
 
-    loopback = utils::Argparser::parserArguments(argc, argv);
+  loopback = utils::Argparser::parserArguments(argc, argv);
 
-    std::cout << loopback << std::endl;
+  std::cout << loopback << std::endl;
 }

@@ -14,19 +14,19 @@
 #include <cstring>
 #include <iostream>
 
-#include "exceptions/SocketCreationException/SocketCreationException.hpp"
+#include "exceptions/SocketCreateException/SocketCreateException.hpp"
 
 namespace network {
 class RawSocket {
-   public:
-    RawSocket(const bool const loopback);
+ public:
+  RawSocket(const bool const loopback);
 
-    virtual ~RawSocket();
+  virtual ~RawSocket();
 
-   private:
-    bool loopback;
-    int socket_id;
-    struct sockaddr_ll dest_address;
+ private:
+  bool loopback;
+  int socket_id;
+  struct sockaddr_ll dest_address;
 };
 }  // namespace network
 

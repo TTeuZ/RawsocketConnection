@@ -5,12 +5,12 @@
 
 namespace utils {
 class Argparser {
-    Argparser() = delete;
+  Argparser() = delete;
 
-    virtual ~Argparser() = default;
+  virtual ~Argparser() = default;
 
-   public:
-    static bool parserArguments(int argc, char** argv);
+ public:
+  static bool parserArguments(int argc, char** argv);
 };
 }  // namespace utils
 
