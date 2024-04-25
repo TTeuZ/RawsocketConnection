@@ -14,12 +14,12 @@
 #include <cstring>
 #include <iostream>
 
-#include "exceptions/SocketCreateException/SocketCreateException.hpp"
+#include "../../exceptions/SocketCreateException/SocketCreateException.hpp"
 
 namespace network {
 class RawSocket {
  public:
-  RawSocket(const bool const loopback);
+  RawSocket(const bool loopback);
 
   virtual ~RawSocket();
 
