@@ -4,6 +4,9 @@ serverName = Server
 flags = -Wall -O3
 objects = $(patsubst %.cpp, %.o, $(wildcard exceptions/**/*.cpp))
 objects += $(patsubst %.cpp, %.o, $(wildcard src/**/*.cpp))
+
+enums = $(wildcard enums/*.hpp)
+
 libs = -lboost_program_options
 
 .PHONY: all client server clean purge
@@ -19,10 +22,10 @@ server: $(serverName)
 # ----------------------------------------------------------------------
 
 $(clientName): client.o $(objects) 
-	g++ -o $(clientName) client.o $(objects) $(flags) $(libs)
+	g++ -o $(clientName) client.o $(objects) $(enums) $(flags) $(libs)
 
 $(serverName): server.o $(objects)
-	g++ -o $(serverName) server.o $(objects) $(flags) $(libs)
+	g++ -o $(serverName) server.o $(objects) $(enums) $(flags) $(libs)
 
 client.o: client.cpp
 	g++ -c client.cpp $(flags)
