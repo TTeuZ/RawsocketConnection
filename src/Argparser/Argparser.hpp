@@ -3,15 +3,15 @@
 
 #include <boost/program_options.hpp>
 
-namespace utils {
+namespace network {
 class Argparser {
+ public:
   Argparser() = delete;
 
   virtual ~Argparser() = default;
 
- public:
   static bool parserArguments(int argc, char** argv);
 };
-}  // namespace utils
+}  // namespace network
 
 #endif

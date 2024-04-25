@@ -2,7 +2,7 @@
 
 namespace po = boost::program_options;
 
-namespace utils {
+namespace network {
 bool Argparser::parserArguments(int argc, char** argv) {
   bool loopback;
 
@@ -16,4 +16,4 @@ bool Argparser::parserArguments(int argc, char** argv) {
 
   return loopback;
 }
-}  // namespace utils
+}  // namespace network

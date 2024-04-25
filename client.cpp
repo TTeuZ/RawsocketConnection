@@ -1,11 +1,12 @@
 #include <iostream>
 
 #include "src/Argparser/Argparser.hpp"
+#include "src/RawSocket/RawSocket.hpp"
 
 int main(int argc, char** argv) {
-  bool loopback;
+  bool loopback = network::Argparser::parserArguments(argc, argv);
 
-  loopback = utils::Argparser::parserArguments(argc, argv);
+  network::RawSocket* rawSocket{new network::RawSocket{loopback}};
 
-  std::cout << loopback << std::endl;
+  delete rawSocket;
 }

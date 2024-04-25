@@ -13,8 +13,10 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <string>
 
 #include "../../exceptions/SocketCreateException/SocketCreateException.hpp"
+#include "../Constants/Constants.hpp"
 
 namespace network {
 class RawSocket {
@@ -26,7 +28,9 @@ class RawSocket {
  private:
   bool loopback;
   int socket_id;
-  struct sockaddr_ll dest_address;
+  struct sockaddr_ll address;
+  struct packet_mreq mr;
+  struct timeval timeout;
 };
 }  // namespace network
 
