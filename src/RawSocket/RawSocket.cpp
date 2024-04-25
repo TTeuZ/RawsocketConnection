@@ -1,7 +1,7 @@
 #include "RawSocket.hpp"
 
 namespace network {
-RawSocket::RawSocket(const bool loopback) {
+RawSocket::RawSocket(const bool loopback) : loopback{loopback} {
   const char* interface_name =
       loopback ? Constants::LOOPBACK_INTERFACE_NAME : Constants::ETHERNET_INTERFACE_NAME;
 
@@ -38,4 +38,31 @@ RawSocket::RawSocket(const bool loopback) {
 }
 
 RawSocket::~RawSocket() { close(this->socket_id); }
+
+void RawSocket::sendMessage() const {
+  unsigned char* sendbuff;
+  int send_len;
+
+  sendbuff = (unsigned char*)malloc(50);
+  memset(sendbuff, 0, 50);
+
+  send_len = sendto(this->socket_id, sendbuff, 50, 0, (const struct sockaddr*)&this->address,
+                    sizeof(struct sockaddr_ll));
+}
+
+void RawSocket::recvMessage() const {
+  unsigned char* buffer = (unsigned char*)malloc(50);
+  memset(buffer, 0, 50);
+
+  struct sockaddr saddr;
+  int saddr_len = sizeof(saddr);
+  int bufflen;
+
+  bufflen = recvfrom(this->socket_id, buffer, 50, 0, &saddr, (socklen_t*)&saddr_len);
+
+  if (bufflen > 0)
+    std::cout << "RECEBEU" << std::endl;
+  else
+    std::cout << "NAO RECEBEU" << std::endl;
+}
 }  // namespace network
