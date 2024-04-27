@@ -20,7 +20,8 @@ int main(int argc, char** argv) {
   while (command != 0) {
     switch (command) {
       case 1:
-        network::Command::listVideos();
+        // network::Command::listVideos();
+        rawSocket->sendPackage();
         break;
       case 2:
         network::Command::downloadVideo();

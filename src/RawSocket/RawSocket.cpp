@@ -17,7 +17,7 @@ RawSocket::RawSocket(const bool loopback) : loopback{loopback} {
   this->address.sll_protocol = htons(ETH_P_ALL);
   this->address.sll_ifindex = ifindex;
 
-  if (bind(socket_id, (struct sockaddr*)&address, sizeof(address)) == -1)
+  if (bind(socket_id, (struct sockaddr*)&this->address, sizeof(this->address)) == -1)
     throw exceptions::SocketCreateException("Error binding socket!");
 
   this->mr = {0};
@@ -38,4 +38,33 @@ RawSocket::RawSocket(const bool loopback) : loopback{loopback} {
 }
 
 RawSocket::~RawSocket() { close(this->socket_id); }
+
+void RawSocket::recvPackage() const {
+  unsigned char buffer[40];
+  ssize_t recv_len;
+
+  recv_len = read(this->socket_id, &buffer, sizeof(buffer));
+
+  if (recv_len < 0)
+    std::cout << recv_len << " erro" << std::endl;
+  else {
+    std::cout << recv_len << " recebeu algo" << std::endl;
+
+    size_t arraySize = sizeof(buffer) / sizeof(buffer[0]);
+    std::cout << "Buffer content: ";
+    for (size_t i = 0; i < arraySize; ++i) {
+      std::cout << buffer[i];  // Cast to int to print as number
+    }
+    std::cout << std::endl;
+  }
+}
+
+void RawSocket::sendPackage() const {
+  unsigned char* package = (unsigned char*)"Caralho, enviamos um pacote, meu amigo!";
+
+  if (write(this->socket_id, package, (size_t)40) == -1) {
+    perror("sendto failed");
+    exit(EXIT_FAILURE);
+  }
+}
 }  // namespace network

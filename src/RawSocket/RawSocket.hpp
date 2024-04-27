@@ -25,6 +25,10 @@ class RawSocket {
 
   virtual ~RawSocket();
 
+  void recvPackage() const;
+
+  void sendPackage() const;
+
  private:
   bool loopback;
   int socket_id;

@@ -7,5 +7,7 @@ int main(int argc, char** argv) {
   bool loopback = network::Argparser::parserArguments(argc, argv);
   network::RawSocket* rawSocket{new network::RawSocket{loopback}};
 
+  rawSocket->recvPackage();
+
   delete rawSocket;
 }
