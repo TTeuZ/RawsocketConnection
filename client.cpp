@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "src/Argparser/Argparser.hpp"
-#include "src/Command/Command.hpp"
+#include "src/Connection/ClientListConnection.hpp"
 #include "src/RawSocket/RawSocket.hpp"
 
 int main(int argc, char** argv) {
@@ -15,23 +15,30 @@ int main(int argc, char** argv) {
   std::cout << "2 - Baixar filme" << std::endl;
   std::cout << "0 - Sair" << std::endl;
 
+  std::cout << "Comando: ";
   int command;
   std::cin >> command;
   while (command != 0) {
     switch (command) {
-      case 1:
-        // network::Command::listVideos();
-        rawSocket->sendPackage();
+      case 1: {
+        network::ClientListConnection* connection{new network::ClientListConnection{rawSocket}};
+        connection->run();
+
+        delete connection;
         break;
-      case 2:
-        network::Command::downloadVideo();
+      }
+      case 2: {
+        std::cout << "Futuro" << std::endl;
         break;
-      case 0:
+      }
+      case 0: {
         std::cout << "Saindo.." << std::endl;
         break;
-      default:
+      }
+      default: {
         std::cout << "Comando invalido" << std::endl;
         break;
+      }
     }
     std::cout << "Proximo comando: ";
     std::cin >> command;
