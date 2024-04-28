@@ -39,32 +39,23 @@ RawSocket::RawSocket(const bool loopback) : loopback{loopback} {
 
 RawSocket::~RawSocket() { close(this->socket_id); }
 
+void RawSocket::sendPackage(Package& package) {
+  bool* bits{package.getRawPackage()};
+
+  if (write(this->socket_id, bits, (size_t(package.getSize()))) == -1)
+    throw exceptions::SendFailedException("Error sending package");
+
+  delete[] bits;
+}
+
 void RawSocket::recvPackage() const {
-  uint8_t buffer[40];
+  bool buffer[760];
   ssize_t recv_len;
 
   recv_len = read(this->socket_id, &buffer, sizeof(buffer));
 
-  if (recv_len < 0)
-    std::cout << recv_len << " erro" << std::endl;
-  else {
-    std::cout << recv_len << " recebeu algo" << std::endl;
-
-    size_t arraySize = sizeof(buffer) / sizeof(buffer[0]);
-    std::cout << "Buffer content: ";
-    for (size_t i = 0; i < arraySize; ++i) {
-      std::cout << buffer[i];  // Cast to int to print as number
-    }
-    std::cout << std::endl;
-  }
-}
-
-void RawSocket::sendPackage() const {
-  uint8_t* package = (uint8_t*)"Caralho, enviamos um pacote, meu amigo!";
-
-  if (write(this->socket_id, package, (size_t)40) == -1) {
-    perror("sendto failed");
-    exit(EXIT_FAILURE);
-  }
+  std::cout << "Bits array: ";
+  for (int i = 0; i < recv_len; ++i) std::cout << buffer[i] << " ";
+  std::cout << std::endl;
 }
 }  // namespace network

@@ -24,8 +24,14 @@ class Package {
   void setDataSize(uint8_t dataSize);
   void setSequence(uint8_t sequence);
 
+  // Getters
+  bool* getRawPackage();
+  uint16_t getSize() const;
+
  private:
   void setCrc();
+
+  void fillUpRawArray(bool* bits, bool full);
 
   uint8_t initMarker;
   uint8_t dataSize : DATA_SIZE;
@@ -33,6 +39,7 @@ class Package {
   PackageTypeEnum type;
   uint8_t data[MAX_DATA_SIZE];
   uint8_t crc;
+  uint16_t size;
 };
 }  // namespace network
 

@@ -10,7 +10,7 @@
 namespace network {
 class ClientListConnection : public Connection {
  public:
-  ClientListConnection(const RawSocket* const rawSocket);
+  ClientListConnection(RawSocket* rawSocket);
 
   virtual ~ClientListConnection() = default;
 

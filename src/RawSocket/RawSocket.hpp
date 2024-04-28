@@ -15,8 +15,10 @@
 #include <iostream>
 #include <string>
 
+#include "../../exceptions/SendFailedException/SendFailedException.hpp"
 #include "../../exceptions/SocketCreateException/SocketCreateException.hpp"
 #include "../Constants/Constants.hpp"
+#include "../Package/Package.hpp"
 
 namespace network {
 class RawSocket {
@@ -25,9 +27,9 @@ class RawSocket {
 
   virtual ~RawSocket();
 
-  void recvPackage() const;
+  void sendPackage(Package& package);
 
-  void sendPackage() const;
+  void recvPackage() const;
 
  private:
   bool loopback;

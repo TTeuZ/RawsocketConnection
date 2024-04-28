@@ -6,14 +6,14 @@
 namespace network {
 class Connection {
  public:
-  Connection(const RawSocket* const rawSocket);
+  Connection(RawSocket* rawSocket);
 
   virtual ~Connection() = default;
 
   virtual void run() = 0;
 
- private:
-  const RawSocket* rawSocket;
+ protected:
+  RawSocket* rawSocket;
 };
 }  // namespace network
 
