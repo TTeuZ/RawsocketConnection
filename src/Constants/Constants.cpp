@@ -6,5 +6,5 @@ const char* Constants::ETHERNET_INTERFACE_NAME = "TBD";
 const int Constants::TIMEOUT = 30;
 
 const uint8_t Constants::INIT_MARKER = 126;
-const uint8_t Constants::POLYNOMIAL_CRC = 0xEA;
+const uint8_t Constants::CRC_POLYNOMIAL = 0x07;
 }  // namespace network

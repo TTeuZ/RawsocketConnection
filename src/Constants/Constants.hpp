@@ -15,7 +15,7 @@ class Constants {
   const static int TIMEOUT;
 
   const static uint8_t INIT_MARKER;
-  const static uint8_t POLYNOMIAL_CRC;
+  const static uint8_t CRC_POLYNOMIAL;
 };
 }  // namespace network
 

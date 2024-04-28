@@ -7,6 +7,10 @@
 #include "../Constants/Constants.hpp"
 
 #define MAX_DATA_SIZE 63
+#define DATA_SIZE 6
+#define SEQUENCE_SIZE 5
+#define TYPE_SIZE 5
+#define BITS_IN_BYTE 8
 
 namespace network {
 class Package {
@@ -24,8 +28,8 @@ class Package {
   void setCrc();
 
   uint8_t initMarker;
-  uint8_t dataSize : 6;
-  uint8_t sequence : 5;
+  uint8_t dataSize : DATA_SIZE;
+  uint8_t sequence : SEQUENCE_SIZE;
   PackageTypeEnum type;
   uint8_t data[MAX_DATA_SIZE];
   uint8_t crc;
