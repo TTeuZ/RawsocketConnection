@@ -40,7 +40,7 @@ RawSocket::RawSocket(const bool loopback) : loopback{loopback} {
 RawSocket::~RawSocket() { close(this->socket_id); }
 
 void RawSocket::recvPackage() const {
-  unsigned char buffer[40];
+  uint8_t buffer[40];
   ssize_t recv_len;
 
   recv_len = read(this->socket_id, &buffer, sizeof(buffer));
@@ -60,7 +60,7 @@ void RawSocket::recvPackage() const {
 }
 
 void RawSocket::sendPackage() const {
-  unsigned char* package = (unsigned char*)"Caralho, enviamos um pacote, meu amigo!";
+  uint8_t* package = (uint8_t*)"Caralho, enviamos um pacote, meu amigo!";
 
   if (write(this->socket_id, package, (size_t)40) == -1) {
     perror("sendto failed");

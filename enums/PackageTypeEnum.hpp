@@ -1,6 +1,7 @@
 #ifndef PACKAGE_TYPE_ENUM_HPP
 #define PACKAGE_TYPE_ENUM_HPP
 
+namespace network {
 enum class PackageTypeEnum {
   ACK = 0x00,
   NACK = 0x01,
@@ -12,5 +13,6 @@ enum class PackageTypeEnum {
   END_TX = 0x1e,
   ERROR = 0x1f
 };
+}
 
 #endif

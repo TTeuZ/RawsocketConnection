@@ -1,6 +1,9 @@
 #ifndef CLIENT_LIST_CONNECTION_HPP
 #define CLIENT_LIST_CONNECTION_HPP
 
+#include "../../enums/PackageTypeEnum.hpp"
+#include "../Constants/Constants.hpp"
+#include "../Package/Package.hpp"
 #include "../RawSocket/RawSocket.hpp"
 #include "Connection.hpp"
 
