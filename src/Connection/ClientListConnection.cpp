@@ -4,7 +4,11 @@ namespace network {
 ClientListConnection::ClientListConnection(RawSocket* rawSocket) : Connection{rawSocket} {};
 
 void ClientListConnection::run() {
+  this->rawSocket->activateTimeout();
+
   Package initialPackage{Constants::INIT_MARKER, 0, 0, network::PackageTypeEnum::LIST};
   this->rawSocket->sendPackage(initialPackage);
+
+  this->rawSocket->inactivateTimeout();
 }
 }  // namespace network

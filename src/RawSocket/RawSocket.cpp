@@ -5,7 +5,8 @@ RawSocket::RawSocket(const bool loopback) : loopback{loopback} {
   const char* interface_name =
       loopback ? Constants::LOOPBACK_INTERFACE_NAME : Constants::ETHERNET_INTERFACE_NAME;
 
-  this->socket_id = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+  // this->socket_id = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+  this->socket_id = socket(AF_PACKET, SOCK_RAW, htons(1234));
   if (this->socket_id < 0)
     throw exceptions::SocketCreateException(
         "Fail in create socket - Please check if you have root permissions!");
@@ -14,7 +15,8 @@ RawSocket::RawSocket(const bool loopback) : loopback{loopback} {
 
   this->address = {0};
   this->address.sll_family = AF_PACKET;
-  this->address.sll_protocol = htons(ETH_P_ALL);
+  // this->address.sll_protocol = htons(ETH_P_ALL);
+  this->address.sll_protocol = htons(1234);
   this->address.sll_ifindex = ifindex;
 
   if (bind(socket_id, (struct sockaddr*)&this->address, sizeof(this->address)) == -1)
@@ -27,17 +29,30 @@ RawSocket::RawSocket(const bool loopback) : loopback{loopback} {
   if (setsockopt(this->socket_id, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &this->mr, sizeof(this->mr)) == -1)
     throw exceptions::SocketCreateException("Error executing setsockopt!");
 
-  this->timeout.tv_sec = Constants::TIMEOUT;
-  this->timeout.tv_usec = 0;
-
-  if (setsockopt(this->socket_id, SOL_SOCKET, SO_SNDTIMEO, (char*)&this->timeout, sizeof(this->timeout)) < 0)
-    throw exceptions::SocketCreateException("Error setting timeout for send!");
-
-  if (setsockopt(this->socket_id, SOL_SOCKET, SO_RCVTIMEO, (char*)&this->timeout, sizeof(this->timeout)) < 0)
-    throw exceptions::SocketCreateException("Error setting timeout for recv!");
+  this->inactivateTimeout();
 }
 
 RawSocket::~RawSocket() { close(this->socket_id); }
+
+void RawSocket::activateTimeout() {
+  this->timeout.tv_sec = Constants::TIMEOUT;
+  this->timeout.tv_usec = 0;
+  if (setsockopt(this->socket_id, SOL_SOCKET, SO_SNDTIMEO, &this->timeout, sizeof(this->timeout)) < 0)
+    throw exceptions::SocketCreateException("Error activating timeout for send!");
+
+  if (setsockopt(this->socket_id, SOL_SOCKET, SO_RCVTIMEO, &this->timeout, sizeof(this->timeout)) < 0)
+    throw exceptions::SocketCreateException("Error activating timeout for recv!");
+}
+
+void RawSocket::inactivateTimeout() {
+  this->timeout.tv_sec = 0;
+  this->timeout.tv_usec = 0;
+  if (setsockopt(this->socket_id, SOL_SOCKET, SO_SNDTIMEO, &this->timeout, sizeof(this->timeout)) < 0)
+    throw exceptions::SocketCreateException("Error inactivating timeout for send!");
+
+  if (setsockopt(this->socket_id, SOL_SOCKET, SO_RCVTIMEO, &this->timeout, sizeof(this->timeout)) < 0)
+    throw exceptions::SocketCreateException("Error inactivating timeout for recv!");
+}
 
 void RawSocket::sendPackage(Package& package) {
   bool* bits{package.getRawPackage()};
@@ -49,7 +64,7 @@ void RawSocket::sendPackage(Package& package) {
 }
 
 void RawSocket::recvPackage() const {
-  bool buffer[760];
+  bool buffer[Constants::MAX_PACKAGE_SIZE];
   ssize_t recv_len;
 
   recv_len = read(this->socket_id, &buffer, sizeof(buffer));

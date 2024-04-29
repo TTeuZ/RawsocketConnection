@@ -16,6 +16,8 @@ class Constants {
 
   const static uint8_t INIT_MARKER;
   const static uint8_t CRC_POLYNOMIAL;
+
+  const static uint8_t MAX_PACKAGE_SIZE;
 };
 }  // namespace network
 

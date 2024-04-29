@@ -27,6 +27,9 @@ class RawSocket {
 
   virtual ~RawSocket();
 
+  void activateTimeout();
+  void inactivateTimeout();
+
   void sendPackage(Package& package);
 
   void recvPackage() const;
