@@ -5,8 +5,7 @@ RawSocket::RawSocket(const bool loopback) : loopback{loopback} {
   const char* interface_name =
       loopback ? Constants::LOOPBACK_INTERFACE_NAME : Constants::ETHERNET_INTERFACE_NAME;
 
-  // this->socket_id = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-  this->socket_id = socket(AF_PACKET, SOCK_RAW, htons(1234));
+  this->socket_id = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
   if (this->socket_id < 0)
     throw exceptions::SocketCreateException(
         "Fail in create socket - Please check if you have root permissions!");
@@ -15,8 +14,7 @@ RawSocket::RawSocket(const bool loopback) : loopback{loopback} {
 
   this->address = {0};
   this->address.sll_family = AF_PACKET;
-  // this->address.sll_protocol = htons(ETH_P_ALL);
-  this->address.sll_protocol = htons(1234);
+  this->address.sll_protocol = htons(ETH_P_ALL);
   this->address.sll_ifindex = ifindex;
 
   if (bind(socket_id, (struct sockaddr*)&this->address, sizeof(this->address)) == -1)
@@ -55,16 +53,14 @@ void RawSocket::inactivateTimeout() {
 }
 
 void RawSocket::sendPackage(Package& package) {
-  bool* bits{package.getRawPackage()};
+  BitArray bits{package.getRawPackage()};
 
-  if (write(this->socket_id, bits, (size_t(package.getSize()))) == -1)
+  if (write(this->socket_id, bits.getData(), bits.sizeBytes()) == -1)
     throw exceptions::SendFailedException("Error sending package");
-
-  delete[] bits;
 }
 
 void RawSocket::recvPackage() const {
-  bool buffer[Constants::MAX_PACKAGE_SIZE];
+  char buffer[Constants::MAX_PACKAGE_SIZE];
   ssize_t recv_len;
 
   recv_len = read(this->socket_id, &buffer, sizeof(buffer));

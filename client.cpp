@@ -21,10 +21,9 @@ int main(int argc, char** argv) {
   while (command != 0) {
     switch (command) {
       case 1: {
-        network::ClientListConnection* connection{new network::ClientListConnection{rawSocket}};
-        connection->run();
+        network::ClientListConnection connection{rawSocket};
+        connection.run();
 
-        delete connection;
         break;
       }
       case 2: {

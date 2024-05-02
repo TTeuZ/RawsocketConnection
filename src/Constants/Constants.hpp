@@ -3,6 +3,12 @@
 
 #include <string>
 
+#define MAX_DATA_SIZE 63
+#define DATA_SIZE 6
+#define SEQUENCE_SIZE 5
+#define TYPE_SIZE 5
+#define BITS_IN_BYTE 8
+
 namespace network {
 class Constants {
  public:
@@ -18,6 +24,7 @@ class Constants {
   const static uint8_t CRC_POLYNOMIAL;
 
   const static uint8_t MAX_PACKAGE_SIZE;
+  const static uint8_t MIN_PACKAGE_SIZE_IN_BITS;
 };
 }  // namespace network
 

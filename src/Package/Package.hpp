@@ -2,15 +2,11 @@
 #define PACKAGE_HPP
 
 #include <cstring>
+#include <memory>
 
 #include "../../enums/PackageTypeEnum.hpp"
+#include "../BitArray/BitArray.hpp"
 #include "../Constants/Constants.hpp"
-
-#define MAX_DATA_SIZE 63
-#define DATA_SIZE 6
-#define SEQUENCE_SIZE 5
-#define TYPE_SIZE 5
-#define BITS_IN_BYTE 8
 
 namespace network {
 class Package {
@@ -25,13 +21,13 @@ class Package {
   void setSequence(uint8_t sequence);
 
   // Getters
-  bool* getRawPackage();
+  BitArray getRawPackage();
   uint16_t getSize() const;
 
  private:
   void setCrc();
 
-  void fillUpRawArray(bool* bits, bool full);
+  void fillUpRawArray(BitArray bits, bool full);
 
   uint8_t initMarker;
   uint8_t dataSize : DATA_SIZE;
