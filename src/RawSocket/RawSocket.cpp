@@ -65,8 +65,10 @@ void RawSocket::recvPackage() const {
 
   recv_len = read(this->socket_id, &buffer, sizeof(buffer));
 
-  std::cout << "Bits array: ";
-  for (int i = 0; i < recv_len; ++i) std::cout << buffer[i] << " ";
-  std::cout << std::endl;
+  if (buffer[0] == '~') {
+    std::cout << "Bits array: ";
+    for (int i = 0; i < recv_len; ++i) std::cout << buffer[i] << " ";
+    std::cout << std::endl;
+  }
 }
 }  // namespace network
