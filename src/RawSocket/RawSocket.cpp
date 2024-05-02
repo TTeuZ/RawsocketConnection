@@ -63,7 +63,8 @@ void RawSocket::recvPackage() const {
   char buffer[Constants::MAX_PACKAGE_SIZE];
   ssize_t recv_len;
 
-  recv_len = read(this->socket_id, &buffer, sizeof(buffer));
+  if ((recv_len = read(this->socket_id, &buffer, sizeof(buffer))) == -1)
+    throw exceptions::TimeoutException("Timeout!");
 
   if (buffer[0] == '~') {
     std::cout << "Bits array: ";

@@ -17,6 +17,7 @@
 
 #include "../../exceptions/SendFailedException/SendFailedException.hpp"
 #include "../../exceptions/SocketCreateException/SocketCreateException.hpp"
+#include "../../exceptions/TimeoutException/TimeoutException.hpp"
 #include "../BitArray/BitArray.hpp"
 #include "../Constants/Constants.hpp"
 #include "../Package/Package.hpp"
