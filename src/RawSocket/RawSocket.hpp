@@ -34,7 +34,7 @@ class RawSocket {
 
   void sendPackage(Package& package);
 
-  void recvPackage() const;
+  std::unique_ptr<Package> recvPackage() const;
 
  private:
   bool loopback;

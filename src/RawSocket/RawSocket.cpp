@@ -59,17 +59,14 @@ void RawSocket::sendPackage(Package& package) {
     throw exceptions::SendFailedException("Error sending package");
 }
 
-void RawSocket::recvPackage() const {
+std::unique_ptr<Package> RawSocket::recvPackage() const {
   char buffer[Constants::MAX_PACKAGE_SIZE];
   ssize_t recv_len;
 
   if ((recv_len = read(this->socket_id, &buffer, sizeof(buffer))) == -1)
     throw exceptions::TimeoutException("Timeout!");
 
-  if (buffer[0] == '~') {
-    std::cout << "Bits array: ";
-    for (int i = 0; i < recv_len; ++i) std::cout << buffer[i] << " ";
-    std::cout << std::endl;
-  }
+  if (buffer[0] == Constants::INIT_MARKER) return std::make_unique<Package>(Package{buffer});
+  return nullptr;
 }
 }  // namespace network
