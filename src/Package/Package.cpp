@@ -24,6 +24,17 @@ Package::Package(uint8_t initMarker, uint8_t dataSize, uint8_t sequence, Package
   this->size = (4 * BITS_IN_BYTE) + (this->dataSize * BITS_IN_BYTE);
 }
 
+Package::Package(const char* const buffer) {
+  size_t count{3};
+
+  this->initMarker = buffer[0];
+  this->dataSize = (buffer[1] >> 2) & 0x3F;
+  this->sequence = ((buffer[1] & 0x03) << 3) | ((buffer[2] & 0xE0) >> 5);
+  this->type = static_cast<PackageTypeEnum>(buffer[2] & 0x1F);
+  for (size_t i = 0; i < this->dataSize; ++i) this->data[i] = buffer[count++];
+  this->crc = buffer[count];
+}
+
 void Package::setDataSize(uint8_t dataSize) { this->dataSize = dataSize > 63 ? 63 : dataSize; }
 
 void Package::setSequence(uint8_t sequence) { this->sequence = sequence > 31 ? 31 : sequence; }
@@ -61,7 +72,7 @@ void Package::setCrc() {
 }
 
 void Package::fillUpRawArray(BitArray bits, bool full) {
-  int count{0};
+  size_t count{0};
 
   if (full)
     for (size_t i = 0; i < BITS_IN_BYTE; ++i)
@@ -76,5 +87,15 @@ void Package::fillUpRawArray(BitArray bits, bool full) {
 
   if (full)
     for (size_t i = 0; i < BITS_IN_BYTE; ++i) bits[count++] = (this->crc >> (BITS_IN_BYTE - 1 - i)) & 1;
+}
+
+void Package::dummy() {
+  std::cout << this->initMarker << std::endl;
+  std::cout << (int)this->dataSize << std::endl;
+  std::cout << (int)this->sequence << std::endl;
+  std::cout << (int)this->type << std::endl;
+  for (size_t i = 0; i < this->dataSize; ++i) std::cout << this->data[i];
+  std::cout << std::endl;
+  std::cout << (int)this->crc << std::endl;
 }
 }  // namespace network

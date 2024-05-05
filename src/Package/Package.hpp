@@ -13,6 +13,7 @@ class Package {
  public:
   Package(uint8_t initMarker, uint8_t dataSize, uint8_t sequence, PackageTypeEnum type, const uint8_t* data);
   Package(uint8_t initMarker, uint8_t dataSize, uint8_t sequence, PackageTypeEnum type);
+  Package(const char* const buffer);
 
   virtual ~Package() = default;
 
@@ -23,6 +24,8 @@ class Package {
   // Getters
   BitArray getRawPackage();
   uint16_t getSize() const;
+
+  void dummy();
 
  private:
   void setCrc();

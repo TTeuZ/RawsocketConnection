@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "src/Argparser/Argparser.hpp"
+#include "src/Package/Package.hpp"
 #include "src/RawSocket/RawSocket.hpp"
 
 int main(int argc, char** argv) {
@@ -8,7 +9,11 @@ int main(int argc, char** argv) {
   network::RawSocket* rawSocket{new network::RawSocket{loopback}};
 
   while (true) {
-    rawSocket->recvPackage();
+    std::unique_ptr<network::Package> package = rawSocket->recvPackage();
+
+    if (package != nullptr) {
+      package->dummy();
+    }
   }
 
   delete rawSocket;

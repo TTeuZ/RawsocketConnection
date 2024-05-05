@@ -8,6 +8,6 @@ const int Constants::TIMEOUT = 30;
 const uint8_t Constants::INIT_MARKER = 126;
 const uint8_t Constants::CRC_POLYNOMIAL = 0x07;
 
-const uint8_t Constants::MAX_PACKAGE_SIZE = static_cast<uint8_t>(95);
+const uint8_t Constants::MAX_PACKAGE_SIZE = static_cast<uint8_t>(67);
 const uint8_t Constants::MIN_PACKAGE_SIZE_IN_BITS = static_cast<uint8_t>(112);
 }  // namespace network
