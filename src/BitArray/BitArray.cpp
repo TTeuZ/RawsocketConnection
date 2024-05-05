@@ -4,7 +4,7 @@ namespace network {
 BitArray::BitArray(const size_t bits) : mTotalBits{bits} {
   if (bits == 0) return;
   this->mArr = std::shared_ptr<char[]>(new char[1 + ((bits - 1) / BITS_IN_BYTE)]);
-  memset(this->mArr.get(), 0, (1 + ((bits - 1) / BITS_IN_BYTE)));
+  std::memset(this->mArr.get(), 0, (1 + ((bits - 1) / BITS_IN_BYTE)));
 }
 
 bool BitArray::get(size_t bit) const {
