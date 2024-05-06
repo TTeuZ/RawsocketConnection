@@ -1,11 +1,11 @@
 #include <iostream>
 
-#include "src/Argparser/Argparser.hpp"
+#include "src/ArgParser/ArgParser.hpp"
 #include "src/Connection/ClientListConnection.hpp"
 #include "src/RawSocket/RawSocket.hpp"
 
 int main(int argc, char** argv) {
-  bool loopback = network::Argparser::parserArguments(argc, argv);
+  bool loopback = network::ArgParser::parseArguments(argc, argv);
   network::RawSocket* rawSocket{new network::RawSocket{loopback}};
 
   std::cout << "Seja bem vindo ao RedesTube" << std::endl;
