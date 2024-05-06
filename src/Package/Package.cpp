@@ -10,7 +10,7 @@ Package::Package(uint8_t initMarker, uint8_t dataSize, uint8_t sequence, Package
   this->setSequence(sequence);
   std::memcpy(this->data, data, MAX_DATA_SIZE);
 
-  this->setCrc();
+  this->crc = this->calcCrc();
   this->size = (4 * BITS_IN_BYTE) + (this->dataSize * BITS_IN_BYTE);
 }
 
@@ -20,7 +20,7 @@ Package::Package(uint8_t initMarker, uint8_t dataSize, uint8_t sequence, Package
   this->setSequence(sequence);
   std::memset(this->data, 0, MAX_DATA_SIZE);
 
-  this->setCrc();
+  this->crc = this->calcCrc();
   this->size = (4 * BITS_IN_BYTE) + (this->dataSize * BITS_IN_BYTE);
 }
 
@@ -51,7 +51,14 @@ BitArray Package::getRawPackage() {
 
 uint16_t Package::getSize() const { return this->size; }
 
-void Package::setCrc() {
+PackageTypeEnum Package::getType() const { return this->type; }
+
+bool Package::checkCrc() {
+  uint8_t tempCrc{this->calcCrc()};
+  return tempCrc == this->crc;
+}
+
+uint8_t Package::calcCrc() {
   size_t bits_qty = (DATA_SIZE + SEQUENCE_SIZE + TYPE_SIZE + (this->dataSize * BITS_IN_BYTE));
   BitArray bits{bits_qty};
 
@@ -68,7 +75,7 @@ void Package::setCrc() {
     }
   }
 
-  this->crc = crcValue;
+  return crcValue;
 }
 
 void Package::fillUpRawArray(BitArray bits, bool full) {

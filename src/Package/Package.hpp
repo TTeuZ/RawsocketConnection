@@ -24,11 +24,15 @@ class Package {
   // Getters
   BitArray getRawPackage();
   uint16_t getSize() const;
+  PackageTypeEnum getType() const;
 
+  bool checkCrc();
+
+  // Remove it
   void dummy();
 
  private:
-  void setCrc();
+  uint8_t calcCrc();
 
   void fillUpRawArray(BitArray bits, bool full);
 

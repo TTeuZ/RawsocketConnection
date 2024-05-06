@@ -62,11 +62,18 @@ void RawSocket::sendPackage(Package& package) {
 std::unique_ptr<Package> RawSocket::recvPackage() const {
   char buffer[Constants::MAX_PACKAGE_SIZE];
   ssize_t recv_len;
+  bool received{false};
 
-  if ((recv_len = read(this->socket_id, &buffer, sizeof(buffer))) == -1)
-    throw exceptions::TimeoutException("Timeout!");
+  do {
+    if ((recv_len = read(this->socket_id, &buffer, sizeof(buffer))) == -1)
+      throw exceptions::TimeoutException("Timeout!");
 
-  if (buffer[0] == Constants::INIT_MARKER) return std::make_unique<Package>(Package{buffer});
-  return nullptr;
+    if (this->loopback) {
+      if (buffer[0] == Constants::INIT_MARKER) received = true;
+    } else
+      received = true;
+  } while (!received);
+
+  return std::make_unique<Package>(Package{buffer});
 }
 }  // namespace network
