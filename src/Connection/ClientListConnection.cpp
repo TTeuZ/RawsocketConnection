@@ -1,7 +1,9 @@
 #include "ClientListConnection.hpp"
 
 namespace network {
-ClientListConnection::ClientListConnection(RawSocket* rawSocket) : Connection{rawSocket} {};
+ClientListConnection::ClientListConnection(RawSocket* rawSocket) : Connection{rawSocket} {
+  this->sequenceOfLastPackage = 0;
+};
 
 void ClientListConnection::run() {
   this->rawSocket->activateTimeout();
@@ -11,26 +13,17 @@ void ClientListConnection::run() {
     Package initialPackage{Constants::INIT_MARKER, 0, 0, network::PackageTypeEnum::LIST};
     this->rawSocket->sendPackage(initialPackage);
 
+    // Waiting ACK from server
     while (running) {
-      std::unique_ptr<network::Package> package{this->rawSocket->recvPackage()};
-      if (!package->checkCrc()) {
-        Package nack{Constants::INIT_MARKER, 0, 0, network::PackageTypeEnum::NACK};
-        this->rawSocket->sendPackage(nack);
-      } else if (package->getType() == PackageTypeEnum::NACK) {
+      Package package{this->rawSocket->recvPackage()};
+
+      if (!this->checkRepeated(&package) && package.getType() != PackageTypeEnum::ACK)
         this->rawSocket->sendPackage(initialPackage);
-      } else {
+      else
         running = false;
-      }
     }
 
-    // while (running) {
-    //   std::unique_ptr<network::Package> package{this->rawSocket->recvPackage()};
-
-    //   if (package != nullptr && package->getType() == PackageTypeEnum::NACK)
-    //     this->rawSocket->sendPackage(initialPackage);
-
-    //   // CONTINUE THE PROCESSING
-    // }
+    // Start receive data packages
 
   } catch (exceptions::TimeoutException& e) {
     std::cerr << "Connection Timeout - closing" << std::endl;

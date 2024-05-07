@@ -12,10 +12,10 @@ int main(int argc, char** argv) {
   network::RawSocket* rawSocket{new network::RawSocket{loopback}};
 
   while (true) {
-    std::unique_ptr<network::Package> package{rawSocket->recvPackage()};
+    network::Package package{rawSocket->recvPackage()};
 
-    if (package->checkCrc()) {
-      switch (package->getType()) {
+    if (package.checkCrc()) {
+      switch (package.getType()) {
         case network::PackageTypeEnum::LIST: {
           network::ServerListConnection connection{rawSocket};
           connection.run();
@@ -27,9 +27,7 @@ int main(int argc, char** argv) {
           break;
         }
         default: {
-          // This can cause infinite looping
-          network::Package nack{network::Constants::INIT_MARKER, 0, 0, network::PackageTypeEnum::NACK};
-          rawSocket->sendPackage(nack);
+          std::cerr << "Invalid Command" << std::endl;
           break;
         }
       }

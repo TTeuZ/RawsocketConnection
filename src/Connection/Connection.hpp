@@ -13,7 +13,10 @@ class Connection {
   virtual void run() = 0;
 
  protected:
+  bool checkRepeated(const Package* const package);
+
   RawSocket* rawSocket;
+  int8_t sequenceOfLastPackage;
 };
 }  // namespace network
 

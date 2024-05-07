@@ -59,7 +59,7 @@ void RawSocket::sendPackage(Package& package) {
     throw exceptions::SendFailedException("Error sending package");
 }
 
-std::unique_ptr<Package> RawSocket::recvPackage() const {
+Package RawSocket::recvPackage() const {
   char buffer[Constants::MAX_PACKAGE_SIZE];
   ssize_t recv_len;
   bool received{false};
@@ -74,6 +74,6 @@ std::unique_ptr<Package> RawSocket::recvPackage() const {
       received = true;
   } while (!received);
 
-  return std::make_unique<Package>(Package{buffer});
+  return Package{buffer};
 }
 }  // namespace network

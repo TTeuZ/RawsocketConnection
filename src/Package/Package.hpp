@@ -15,6 +15,9 @@ class Package {
   Package(uint8_t initMarker, uint8_t dataSize, uint8_t sequence, PackageTypeEnum type);
   Package(const char* const buffer);
 
+  Package(Package&& package);
+  Package& operator=(Package&& package);
+
   virtual ~Package() = default;
 
   // Setters
@@ -25,6 +28,7 @@ class Package {
   BitArray getRawPackage();
   uint16_t getSize() const;
   PackageTypeEnum getType() const;
+  uint8_t getSequence() const;
 
   bool checkCrc();
 

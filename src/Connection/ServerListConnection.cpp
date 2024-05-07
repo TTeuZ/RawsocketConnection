@@ -1,7 +1,9 @@
 #include "ServerListConnection.hpp"
 
 namespace network {
-ServerListConnection::ServerListConnection(RawSocket* rawSocket) : Connection{rawSocket} {};
+ServerListConnection::ServerListConnection(RawSocket* rawSocket) : Connection{rawSocket} {
+  this->sequenceOfLastPackage = -1;
+};
 
 void ServerListConnection::run() {
   this->rawSocket->activateTimeout();

@@ -35,6 +35,28 @@ Package::Package(const char* const buffer) {
   this->crc = buffer[count];
 }
 
+Package::Package(Package&& package) {
+  initMarker = package.initMarker;
+  dataSize = package.dataSize;
+  sequence = package.sequence;
+  type = package.type;
+  std::memcpy(data, package.data, MAX_DATA_SIZE);
+  crc = package.crc;
+  size = package.size;
+}
+
+Package& Package::operator=(Package&& package) {
+  initMarker = package.initMarker;
+  dataSize = package.dataSize;
+  sequence = package.sequence;
+  type = package.type;
+  std::memcpy(data, package.data, MAX_DATA_SIZE);
+  crc = package.crc;
+  size = package.size;
+
+  return *this;
+}
+
 void Package::setDataSize(uint8_t dataSize) { this->dataSize = dataSize > 63 ? 63 : dataSize; }
 
 void Package::setSequence(uint8_t sequence) { this->sequence = sequence > 31 ? 31 : sequence; }
@@ -52,6 +74,8 @@ BitArray Package::getRawPackage() {
 uint16_t Package::getSize() const { return this->size; }
 
 PackageTypeEnum Package::getType() const { return this->type; }
+
+uint8_t Package::getSequence() const { return this->sequence; }
 
 bool Package::checkCrc() {
   uint8_t tempCrc{this->calcCrc()};
