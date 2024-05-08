@@ -24,15 +24,24 @@ Package::Package(uint8_t initMarker, uint8_t dataSize, uint8_t sequence, Package
   this->size = (4 * BITS_IN_BYTE) + (this->dataSize * BITS_IN_BYTE);
 }
 
-Package::Package(const char* const buffer) {
-  size_t count{3};
+Package::Package(const char* const buffer, size_t bytes) {
+  size_t count{3}, final_len{0};
+  char temp[bytes];
 
-  this->initMarker = buffer[0];
-  this->dataSize = (buffer[1] >> 2) & 0x3F;
-  this->sequence = ((buffer[1] & 0x03) << 3) | ((buffer[2] & 0xE0) >> 5);
-  this->type = static_cast<PackageTypeEnum>(buffer[2] & 0x1F);
-  for (size_t i = 0; i < this->dataSize; ++i) this->data[i] = buffer[count++];
-  this->crc = buffer[count];
+  for (size_t i = 0; i < bytes; ++i) {
+    if (buffer[i] == (char)Constants::VLAN_BYTE_ONE || buffer[i] == (char)Constants::VLAN_BYTE_TWO)
+      temp[final_len++] = buffer[i++];
+    else
+      temp[final_len++] = buffer[i];
+  }
+
+  this->initMarker = temp[0];
+  this->dataSize = (temp[1] >> 2) & 0x3F;
+  this->sequence = ((temp[1] & 0x03) << 3) | ((temp[2] & 0xE0) >> 5);
+  this->type = static_cast<PackageTypeEnum>(temp[2] & 0x1F);
+  for (size_t i = 0; i < this->dataSize; ++i) this->data[i] = temp[count++];
+  this->crc = temp[count];
+  this->size = final_len * BITS_IN_BYTE;
 }
 
 Package::Package(Package&& package) {
@@ -67,6 +76,14 @@ BitArray Package::getRawPackage() {
 
   BitArray bits{size};
   this->fillUpRawArray(bits, true);
+
+  for (size_t i = 0; i < bits.sizeBytes(); ++i) {
+    if (bits.getData()[i] == (char)Constants::VLAN_BYTE_ONE ||
+        bits.getData()[i] == (char)Constants::VLAN_BYTE_TWO) {
+      bits.insert(Constants::ESCAPE, i + 1);
+      ++i;
+    }
+  }
 
   return bits;
 }
@@ -128,5 +145,14 @@ void Package::dummy() {
   for (size_t i = 0; i < this->dataSize; ++i) std::cout << this->data[i];
   std::cout << std::endl;
   std::cout << (int)this->crc << std::endl;
+
+  BitArray bits{this->size};
+  this->fillUpRawArray(bits, true);
+
+  for (size_t i = 0; i < bits.size(); ++i) {
+    std::cout << bits[i];
+    if (i != 0 && ((i + 1) % 8) == 0) std::cout << " ";
+  }
+  std::cout << std::endl;
 }
 }  // namespace network

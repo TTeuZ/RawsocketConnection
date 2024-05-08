@@ -25,6 +25,10 @@ class Constants {
 
   const static uint8_t MAX_PACKAGE_SIZE;
   const static uint8_t MIN_PACKAGE_SIZE_IN_BITS;
+
+  const static uint8_t VLAN_BYTE_ONE;
+  const static uint8_t VLAN_BYTE_TWO;
+  const static uint8_t ESCAPE;
 };
 }  // namespace network
 

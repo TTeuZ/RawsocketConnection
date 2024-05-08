@@ -13,7 +13,7 @@ class Package {
  public:
   Package(uint8_t initMarker, uint8_t dataSize, uint8_t sequence, PackageTypeEnum type, const uint8_t* data);
   Package(uint8_t initMarker, uint8_t dataSize, uint8_t sequence, PackageTypeEnum type);
-  Package(const char* const buffer);
+  Package(const char* const buffer, size_t bytes);
 
   Package(Package&& package);
   Package& operator=(Package&& package);
@@ -46,7 +46,7 @@ class Package {
   PackageTypeEnum type;
   uint8_t data[MAX_DATA_SIZE];
   uint8_t crc;
-  uint16_t size;
+  size_t size;
 };
 }  // namespace network
 

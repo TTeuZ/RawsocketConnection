@@ -60,7 +60,7 @@ void RawSocket::sendPackage(Package& package) {
 }
 
 Package RawSocket::recvPackage() const {
-  char buffer[Constants::MAX_PACKAGE_SIZE];
+  char buffer[Constants::MAX_PACKAGE_SIZE * 2];
   ssize_t recv_len;
   bool received{false};
 
@@ -74,6 +74,6 @@ Package RawSocket::recvPackage() const {
       received = true;
   } while (!received);
 
-  return Package{buffer};
+  return Package{buffer, static_cast<size_t>(recv_len)};
 }
 }  // namespace network

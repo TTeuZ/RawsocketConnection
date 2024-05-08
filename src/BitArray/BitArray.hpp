@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <memory>
+#include <vector>
 
 #include "../Constants/Constants.hpp"
 #include "BitElement.hpp"
@@ -23,12 +24,14 @@ class BitArray {
 
   char* getData() const;
 
+  void insert(char byte, size_t index);
+
   // Operators
   BitElement operator[](size_t bit) const;
 
  private:
-  std::shared_ptr<char[]> mArr;
-  const size_t mTotalBits;
+  std::shared_ptr<std::vector<char>> mArr;
+  size_t mTotalBits;
 };
 }  // namespace network
 
