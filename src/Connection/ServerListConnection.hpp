@@ -1,6 +1,11 @@
 #ifndef SERVER_LIST_CONNECTION_HPP
 #define SERVER_LIST_CONNECTION_HPP
 
+#include <dirent.h>
+
+#include <cstring>
+
+#include "../Constants/Constants.hpp"
 #include "../RawSocket/RawSocket.hpp"
 #include "Connection.hpp"
 

@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <net/ethernet.h>
 #include <net/if.h>
+#include <netinet/if_ether.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netpacket/packet.h>
@@ -37,11 +38,19 @@ class RawSocket {
   Package recvPackage() const;
 
  private:
+  //  Loopback only
+  bool checkLastSent(const Package& package) const;
+
   bool loopback;
   int socket_id;
   struct sockaddr_ll address;
   struct packet_mreq mr;
   struct timeval timeout;
+
+  // Loopback only
+  uint8_t dataSize : DATA_SIZE;
+  uint8_t sequence : SEQUENCE_SIZE;
+  PackageTypeEnum type;
 };
 }  // namespace network
 

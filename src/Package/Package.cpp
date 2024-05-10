@@ -90,9 +90,13 @@ BitArray Package::getRawPackage() {
 
 uint16_t Package::getSize() const { return this->size; }
 
+uint8_t Package::getDataSize() const { return this->dataSize; }
+
 PackageTypeEnum Package::getType() const { return this->type; }
 
 uint8_t Package::getSequence() const { return this->sequence; }
+
+const uint8_t* Package::getData() const { return this->data; }
 
 bool Package::checkCrc() {
   uint8_t tempCrc{this->calcCrc()};

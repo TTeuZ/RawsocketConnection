@@ -23,12 +23,16 @@ class Constants {
   const static uint8_t INIT_MARKER;
   const static uint8_t CRC_POLYNOMIAL;
 
+  const static uint8_t MAX_SEQUENCE_SIZE;
+
   const static uint8_t MAX_PACKAGE_SIZE;
   const static uint8_t MIN_PACKAGE_SIZE_IN_BITS;
 
   const static uint8_t VLAN_BYTE_ONE;
   const static uint8_t VLAN_BYTE_TWO;
   const static uint8_t ESCAPE;
+
+  const static char* VIDEOS_PATH;
 };
 }  // namespace network
 

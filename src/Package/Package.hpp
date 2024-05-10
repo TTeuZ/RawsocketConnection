@@ -27,8 +27,11 @@ class Package {
   // Getters
   BitArray getRawPackage();
   uint16_t getSize() const;
+
+  uint8_t getDataSize() const;
   PackageTypeEnum getType() const;
   uint8_t getSequence() const;
+  const uint8_t* getData() const;
 
   bool checkCrc();
 

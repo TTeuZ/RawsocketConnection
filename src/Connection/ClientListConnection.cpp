@@ -2,7 +2,7 @@
 
 namespace network {
 ClientListConnection::ClientListConnection(RawSocket* rawSocket) : Connection{rawSocket} {
-  this->sequenceOfLastPackage = 0;
+  this->lastSequence = 0;
 };
 
 void ClientListConnection::run() {
@@ -24,7 +24,42 @@ void ClientListConnection::run() {
     }
 
     // Start receive data packages
+    running = true;
+    while (running) {
+      Package package{this->rawSocket->recvPackage()};
 
+      if (package.checkCrc() && !this->checkRepeated(&package)) {
+        switch (package.getType()) {
+          case PackageTypeEnum::SHOW: {
+            std::cout << package.getData() << std::endl;
+
+            Package ack{Constants::INIT_MARKER, 0, static_cast<uint8_t>(this->lastSequence + 1),
+                        PackageTypeEnum::ACK};
+            this->rawSocket->sendPackage(ack);
+            break;
+          }
+          case PackageTypeEnum::ERROR: {
+            std::cout << "Falha de acesso no diretorio de videos. Encerrando." << std::endl;
+            running = false;
+            break;
+          }
+          case PackageTypeEnum::END_TX: {
+            Package ack{Constants::INIT_MARKER, 0, static_cast<uint8_t>(this->lastSequence + 1),
+                        PackageTypeEnum::ACK};
+            this->rawSocket->sendPackage(ack);
+
+            running = false;
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      } else {
+        Package nack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::NACK};
+        this->rawSocket->sendPackage(nack);
+      }
+    }
   } catch (exceptions::TimeoutException& e) {
     std::cerr << "Connection Timeout - closing" << std::endl;
     this->rawSocket->inactivateTimeout();

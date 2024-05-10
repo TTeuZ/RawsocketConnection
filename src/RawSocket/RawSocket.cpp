@@ -1,7 +1,7 @@
 #include "RawSocket.hpp"
 
 namespace network {
-RawSocket::RawSocket(const bool loopback) : loopback{loopback} {
+RawSocket::RawSocket(const bool loopback) : loopback{loopback}, dataSize{0}, sequence{0}, type{0} {
   const char* interface_name =
       loopback ? Constants::LOOPBACK_INTERFACE_NAME : Constants::ETHERNET_INTERFACE_NAME;
 
@@ -55,6 +55,12 @@ void RawSocket::inactivateTimeout() {
 void RawSocket::sendPackage(Package& package) {
   BitArray bits{package.getRawPackage()};
 
+  if (this->loopback) {
+    this->dataSize = package.getDataSize();
+    this->sequence = package.getSequence();
+    this->type = package.getType();
+  }
+
   if (write(this->socket_id, bits.getData(), bits.sizeBytes()) == -1)
     throw exceptions::SendFailedException("Error sending package");
 }
@@ -62,18 +68,28 @@ void RawSocket::sendPackage(Package& package) {
 Package RawSocket::recvPackage() const {
   char buffer[Constants::MAX_PACKAGE_SIZE * 2];
   ssize_t recv_len;
-  bool received{false};
 
   do {
     if ((recv_len = read(this->socket_id, &buffer, sizeof(buffer))) == -1)
       throw exceptions::TimeoutException("Timeout!");
 
     if (this->loopback) {
-      if (buffer[0] == Constants::INIT_MARKER) received = true;
+      if (buffer[0] == Constants::INIT_MARKER) {
+        Package package{buffer, static_cast<size_t>(recv_len)};
+        if (this->checkLastSent(package)) return package;
+      }
     } else
-      received = true;
-  } while (!received);
+      return Package{buffer, static_cast<size_t>(recv_len)};
+  } while (true);
+}
 
-  return Package{buffer, static_cast<size_t>(recv_len)};
+bool RawSocket::checkLastSent(const Package& package) const {
+  bool isEqual{true};
+
+  if (package.getDataSize() != this->dataSize) isEqual = false;
+  if (package.getSequence() != this->sequence) isEqual = false;
+  if (package.getType() != this->type) isEqual = false;
+
+  return !isEqual;
 }
 }  // namespace network

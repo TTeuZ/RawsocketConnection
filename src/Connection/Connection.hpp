@@ -16,7 +16,7 @@ class Connection {
   bool checkRepeated(const Package* const package);
 
   RawSocket* rawSocket;
-  int8_t sequenceOfLastPackage;
+  uint8_t lastSequence;
 };
 }  // namespace network
 

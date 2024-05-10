@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
           break;
         }
         default: {
-          std::cerr << "Invalid Command" << std::endl;
+          // Cleaning buffer loopback
           break;
         }
       }

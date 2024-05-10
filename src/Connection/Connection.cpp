@@ -4,8 +4,8 @@ namespace network {
 Connection::Connection(RawSocket* rawSocket) : rawSocket{rawSocket} {};
 
 bool Connection::checkRepeated(const Package* const package) {
-  if (this->sequenceOfLastPackage != package->getSequence()) {
-    this->sequenceOfLastPackage = package->getSequence();
+  if (this->lastSequence != package->getSequence()) {
+    this->lastSequence = package->getSequence();
     return false;
   }
   return true;
