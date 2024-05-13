@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netpacket/packet.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -35,11 +36,11 @@ class RawSocket {
 
   void sendPackage(Package& package);
 
-  Package recvPackage() const;
+  Package recvPackage();
 
  private:
-  //  Loopback only
-  bool checkLastSent(const Package& package) const;
+  bool can_write();
+  bool can_read();
 
   bool loopback;
   int socket_id;
@@ -48,9 +49,7 @@ class RawSocket {
   struct timeval timeout;
 
   // Loopback only
-  uint8_t dataSize : DATA_SIZE;
-  uint8_t sequence : SEQUENCE_SIZE;
-  PackageTypeEnum type;
+  int skipNext;
 };
 }  // namespace network
 

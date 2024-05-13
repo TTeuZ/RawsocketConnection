@@ -1,9 +1,7 @@
 #include "ClientListConnection.hpp"
 
 namespace network {
-ClientListConnection::ClientListConnection(RawSocket* rawSocket) : Connection{rawSocket} {
-  this->lastSequence = 0;
-};
+ClientListConnection::ClientListConnection(RawSocket* rawSocket) : Connection{rawSocket} { this->lastSequence = 0; };
 
 void ClientListConnection::run() {
   this->rawSocket->activateTimeout();
@@ -17,7 +15,7 @@ void ClientListConnection::run() {
     while (running) {
       Package package{this->rawSocket->recvPackage()};
 
-      if (!this->checkRepeated(&package) && package.getType() != PackageTypeEnum::ACK)
+      if (package.getType() != PackageTypeEnum::ACK)
         this->rawSocket->sendPackage(initialPackage);
       else
         running = false;
@@ -28,13 +26,14 @@ void ClientListConnection::run() {
     while (running) {
       Package package{this->rawSocket->recvPackage()};
 
-      if (package.checkCrc() && !this->checkRepeated(&package)) {
+      if (package.checkCrc()) {
         switch (package.getType()) {
           case PackageTypeEnum::SHOW: {
-            std::cout << package.getData() << std::endl;
+            for (size_t i = 0; i < package.getDataSize(); ++i) std::cout << package.getData()[i];
 
-            Package ack{Constants::INIT_MARKER, 0, static_cast<uint8_t>(this->lastSequence + 1),
-                        PackageTypeEnum::ACK};
+            Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
+            this->lastSequence = package.getSequence();
+
             this->rawSocket->sendPackage(ack);
             break;
           }
@@ -44,8 +43,7 @@ void ClientListConnection::run() {
             break;
           }
           case PackageTypeEnum::END_TX: {
-            Package ack{Constants::INIT_MARKER, 0, static_cast<uint8_t>(this->lastSequence + 1),
-                        PackageTypeEnum::ACK};
+            Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
             this->rawSocket->sendPackage(ack);
 
             running = false;

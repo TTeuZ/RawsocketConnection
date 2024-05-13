@@ -13,8 +13,6 @@ class Connection {
   virtual void run() = 0;
 
  protected:
-  bool checkRepeated(const Package* const package);
-
   RawSocket* rawSocket;
   uint8_t lastSequence;
 };
