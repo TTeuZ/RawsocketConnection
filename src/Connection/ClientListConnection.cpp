@@ -21,6 +21,8 @@ void ClientListConnection::run() {
         running = false;
     }
 
+    std::cout << "\n---------------[LISTA]---------------\n";
+
     // Start receive data packages
     running = true;
     while (running) {
@@ -38,13 +40,14 @@ void ClientListConnection::run() {
             break;
           }
           case PackageTypeEnum::ERROR: {
-            std::cout << "Falha de acesso no diretorio de videos. Encerrando." << std::endl;
+            std::cout << "Falha de acesso no diretorio de videos. Encerrando..." << std::endl;
             running = false;
             break;
           }
           case PackageTypeEnum::END_TX: {
             Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
             this->rawSocket->sendPackage(ack);
+            std::cout << std::endl;
 
             running = false;
             break;

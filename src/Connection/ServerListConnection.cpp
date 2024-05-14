@@ -60,7 +60,7 @@ void ServerListConnection::run() {
     // Sending packages
     std::vector<Package>::iterator it_package{packages.begin()};
     while (it_package != packages.end()) {
-      std::cout << "enviando pacote: " << (int)(*it_package).getSequence() << std::endl;
+      std::cout << "Enviando pacote: " << (int)(*it_package).getSequence() << std::endl;
 
       this->rawSocket->sendPackage((*it_package));
 
@@ -73,7 +73,7 @@ void ServerListConnection::run() {
                    PackageTypeEnum::END_TX};
     this->rawSocket->sendPackage(end_tx);
 
-    std::cout << "Finalizando conexao - LIST" << std::endl;
+    std::cout << "Finalizando conexao - LIST\n" << std::endl;
     while (running) {
       Package package{this->rawSocket->recvPackage()};
 

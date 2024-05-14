@@ -2,6 +2,7 @@
 
 #include "enums/PackageTypeEnum.hpp"
 #include "src/ArgParser/ArgParser.hpp"
+#include "src/Connection/ServerDownloadConnection.hpp"
 #include "src/Connection/ServerListConnection.hpp"
 #include "src/Constants/Constants.hpp"
 #include "src/Package/Package.hpp"
@@ -23,7 +24,9 @@ int main(int argc, char** argv) {
           break;
         }
         case network::PackageTypeEnum::DOWNLOAD: {
-          std::cout << "recebido download" << std::endl;
+          network::ServerDownloadConnection connection{rawSocket};
+          connection.run();
+
           break;
         }
         default: {

@@ -1,9 +1,5 @@
-#ifndef SERVER_LIST_CONNECTION_HPP
-#define SERVER_LIST_CONNECTION_HPP
-
-#include <dirent.h>
-
-#include <cstring>
+#ifndef SERVER_DOWNLOAD_CONNECTION_HPP
+#define SERVER_DOWNLOAD_CONNECTION_HPP
 
 #include "../../enums/PackageTypeEnum.hpp"
 #include "../../exceptions/TimeoutException/TimeoutException.hpp"
@@ -13,14 +9,14 @@
 #include "Connection.hpp"
 
 namespace network {
-class ServerListConnection : public Connection {
+class ServerDownloadConnection : public Connection {
  public:
-  ServerListConnection(RawSocket* rawSocket);
+  ServerDownloadConnection(RawSocket* rawSocket);
 
-  virtual ~ServerListConnection() = default;
+  virtual ~ServerDownloadConnection() = default;
 
   void run() override;
 };
-}  // namespace network
+};  // namespace network
 
 #endif

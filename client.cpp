@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "src/ArgParser/ArgParser.hpp"
+#include "src/Connection/ClientDownloadConnection.hpp"
 #include "src/Connection/ClientListConnection.hpp"
 #include "src/RawSocket/RawSocket.hpp"
 
@@ -27,7 +28,15 @@ int main(int argc, char** argv) {
         break;
       }
       case 2: {
-        std::cout << "Futuro" << std::endl;
+        std::string videoName;
+
+        std::cout << "Informe o nome do filme: ";
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::getline(std::cin, videoName);
+
+        network::ClientDownloadConnection connection{rawSocket, videoName};
+        connection.run();
+
         break;
       }
       case 0: {
