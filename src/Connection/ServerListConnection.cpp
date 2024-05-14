@@ -8,7 +8,7 @@ void ServerListConnection::run() {
   bool running{true};
 
   try {
-    std::cout << "Iniando conexao - LIST" << std::endl;
+    std::cout << "Iniciando conexao - LIST" << std::endl;
 
     Package ack{Constants::INIT_MARKER, 0, 0, PackageTypeEnum::ACK};
     this->rawSocket->sendPackage(ack);

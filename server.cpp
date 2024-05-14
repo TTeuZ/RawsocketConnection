@@ -24,7 +24,11 @@ int main(int argc, char** argv) {
           break;
         }
         case network::PackageTypeEnum::DOWNLOAD: {
-          network::ServerDownloadConnection connection{rawSocket};
+          std::string videoName;
+          for (size_t i = 0; i < package.getDataSize(); ++i)
+            videoName.append(1, static_cast<char>(package.getData()[i]));
+
+          network::ServerDownloadConnection connection{rawSocket, videoName};
           connection.run();
 
           break;
