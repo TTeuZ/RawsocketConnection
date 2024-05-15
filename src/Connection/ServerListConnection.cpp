@@ -5,7 +5,6 @@ ServerListConnection::ServerListConnection(RawSocket* rawSocket) : Connection{ra
 
 void ServerListConnection::run() {
   this->rawSocket->activateTimeout();
-  bool running{true};
 
   try {
     std::cout << "Iniciando conexao - LIST" << std::endl;
@@ -34,6 +33,9 @@ void ServerListConnection::run() {
       uint8_t errorCode[1] = {1};
       Package error{Constants::INIT_MARKER, 1, 0, PackageTypeEnum::ERROR, errorCode};
       this->rawSocket->sendPackage(error);
+
+      this->wait_ack(error);
+      return;
     }
 
     // Creating packages
@@ -73,15 +75,8 @@ void ServerListConnection::run() {
                    PackageTypeEnum::END_TX};
     this->rawSocket->sendPackage(end_tx);
 
+    this->wait_ack(end_tx);
     std::cout << "Finalizando conexao - LIST\n" << std::endl;
-    while (running) {
-      Package package{this->rawSocket->recvPackage()};
-
-      if (package.getType() != PackageTypeEnum::ACK)
-        this->rawSocket->sendPackage(end_tx);
-      else
-        running = false;
-    }
 
     buffer.clear();
     packages.clear();

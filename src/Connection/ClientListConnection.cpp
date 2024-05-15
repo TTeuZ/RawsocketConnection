@@ -11,15 +11,7 @@ void ClientListConnection::run() {
     Package initialPackage{Constants::INIT_MARKER, 0, 0, network::PackageTypeEnum::LIST};
     this->rawSocket->sendPackage(initialPackage);
 
-    // Waiting ACK from server
-    while (running) {
-      Package package{this->rawSocket->recvPackage()};
-
-      if (package.getType() != PackageTypeEnum::ACK)
-        this->rawSocket->sendPackage(initialPackage);
-      else
-        running = false;
-    }
+    this->wait_ack(initialPackage);
 
     std::cout << "\n---------------[LISTA]---------------\n";
 
@@ -29,11 +21,10 @@ void ClientListConnection::run() {
       Package package{this->rawSocket->recvPackage()};
 
       if (package.checkCrc()) {
+        Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
         switch (package.getType()) {
           case PackageTypeEnum::SHOW: {
             for (size_t i = 0; i < package.getDataSize(); ++i) std::cout << package.getData()[i];
-
-            Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
             this->lastSequence = package.getSequence();
 
             this->rawSocket->sendPackage(ack);
@@ -41,13 +32,14 @@ void ClientListConnection::run() {
           }
           case PackageTypeEnum::ERROR: {
             std::cout << "Falha de acesso no diretorio de videos. Encerrando..." << std::endl;
+            this->rawSocket->sendPackage(ack);
+
             running = false;
             break;
           }
           case PackageTypeEnum::END_TX: {
-            Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
-            this->rawSocket->sendPackage(ack);
             std::cout << std::endl;
+            this->rawSocket->sendPackage(ack);
 
             running = false;
             break;
