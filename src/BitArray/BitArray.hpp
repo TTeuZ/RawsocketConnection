@@ -15,10 +15,6 @@ class BitArray {
 
   virtual ~BitArray() = default;
 
-  // Both can be removed (not used only the ones from BitElement)
-  bool get(size_t bit) const;
-  void set(size_t bit, bool val);
-
   size_t size() const;
   size_t sizeBytes() const;
 
