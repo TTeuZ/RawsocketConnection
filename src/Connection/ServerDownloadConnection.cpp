@@ -9,7 +9,6 @@ ServerDownloadConnection::ServerDownloadConnection(RawSocket* rawSocket, const s
 
 void ServerDownloadConnection::run() {
   this->rawSocket->activateTimeout();
-  bool running{true};
 
   try {
     std::cout << "Iniciando conexao - DOWNLOAD - " << this->videoName << std::endl;
@@ -18,26 +17,82 @@ void ServerDownloadConnection::run() {
     this->rawSocket->sendPackage(ack);
 
     // Opening file
-    std::ifstream file{Constants::VIDEOS_PATH + '/' + this->videoName};
+    std::string path{std::string{Constants::VIDEOS_PATH} + "/" + this->videoName};
+    std::ifstream file{path, std::ios::binary};
     if (!file.is_open()) {
+      std::cout << "Finalizando conexao - DOWNLOAD - " << this->videoName << std::endl;
+
       uint8_t errorCode[1] = {2};
       Package error{Constants::INIT_MARKER, 1, 0, PackageTypeEnum::ERROR, errorCode};
       this->rawSocket->sendPackage(error);
 
-      while (running) {
-        Package package{this->rawSocket->recvPackage()};
-
-        if (package.getType() != PackageTypeEnum::ACK)
-          this->rawSocket->sendPackage(error);
-        else
-          running = false;
-      }
-
+      this->wait_ack(error);
+      this->rawSocket->inactivateTimeout();
       return;
     }
 
-    std::cout << "ABRIU MEU CONSAGRADO" << std::endl;
+    // Creating header
+    std::cout << "Enviando pacote de header" << std::endl;
 
+    std::filesystem::path filePath(path);
+    uintmax_t fileSize = std::filesystem::file_size(filePath);
+    uint8_t fileSizeArray[sizeof(fileSize)];
+
+    for (size_t i = 0; i < sizeof(fileSize); ++i)
+      fileSizeArray[sizeof(fileSize) - 1 - i] = static_cast<uint8_t>((fileSize >> (i * 8)) & 0xFF);
+
+    Package header{Constants::INIT_MARKER, sizeof(fileSize), 1, PackageTypeEnum::FILE_HEADER, fileSizeArray};
+    this->rawSocket->sendPackage(header);
+    this->wait_ack(header);
+
+    // Create packages
+    std::cout << "Coletando dados..." << std::endl;
+
+    std::vector<Package> packages;
+    uint8_t readBuffer[MAX_DATA_SIZE];
+    int count{2};
+
+    while (file) {
+      file.read(reinterpret_cast<char*>(readBuffer), MAX_DATA_SIZE);
+      std::streamsize bytesRead = file.gcount();
+
+      if (bytesRead > 0)
+        packages.push_back(Package{Constants::INIT_MARKER, static_cast<uint8_t>(bytesRead),
+                                   static_cast<uint8_t>(count++ % Constants::MAX_SEQUENCE_SIZE), PackageTypeEnum::DATA,
+                                   readBuffer});
+
+      if (bytesRead < MAX_DATA_SIZE) break;
+    }
+
+    // Sending packages
+    size_t windowCount{0};
+    std::vector<Package>::iterator it_package{packages.begin()};
+    while (it_package != packages.end()) {
+      std::cout << "Enviando pacote: " << (int)(*it_package).getSequence() << std::endl;
+
+      this->rawSocket->sendPackage((*it_package++));
+      ++windowCount;
+
+      if ((windowCount % WINDOW_SIZE) == 0 || it_package == packages.end()) {
+        Package package{this->rawSocket->recvPackage()};
+
+        if (package.getType() != PackageTypeEnum::ACK)
+          it_package -= it_package != packages.end() ? WINDOW_SIZE : windowCount;
+
+        windowCount = 0;
+      }
+    }
+
+    // End transmissian
+    Package end_tx{Constants::INIT_MARKER, 0, static_cast<uint8_t>(count % Constants::MAX_SEQUENCE_SIZE),
+                   PackageTypeEnum::END_TX};
+    this->rawSocket->sendPackage(end_tx);
+
+    this->wait_ack(end_tx);
+    std::cout << "Finalizando conexao - DOWNLOAD - " << this->videoName << std::endl;
+
+    file.close();
+    packages.clear();
   } catch (exceptions::TimeoutException& e) {
     std::cerr << "Connection Timeout - closing" << std::endl;
     this->rawSocket->inactivateTimeout();

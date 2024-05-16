@@ -1,6 +1,9 @@
 #ifndef CLIENT_DOWNLOAD_CONNECTION_HPP
 #define CLIENT_DOWNLOAD_CONNECTION_HPP
 
+#include <cmath>
+#include <fstream>
+
 #include "../../enums/PackageTypeEnum.hpp"
 #include "../../exceptions/TimeoutException/TimeoutException.hpp"
 #include "../Constants/Constants.hpp"
@@ -18,6 +21,8 @@ class ClientDownloadConnection : public Connection {
   void run() override;
 
  private:
+  void showProgress(const uintmax_t recvPackages, const uintmax_t totalPackages) const;
+
   std::string videoName;
 };
 };  // namespace network

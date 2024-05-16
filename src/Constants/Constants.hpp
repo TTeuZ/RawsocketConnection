@@ -9,6 +9,8 @@
 #define TYPE_SIZE 5
 #define BITS_IN_BYTE 8
 
+#define WINDOW_SIZE 5
+
 namespace network {
 class Constants {
  public:
@@ -33,6 +35,7 @@ class Constants {
   const static uint8_t ESCAPE;
 
   const static char* VIDEOS_PATH;
+  const static char* DOWNLOADS_PATH;
 };
 }  // namespace network
 
