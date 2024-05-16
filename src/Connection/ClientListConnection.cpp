@@ -10,7 +10,6 @@ void ClientListConnection::run() {
   try {
     Package initialPackage{Constants::INIT_MARKER, 0, 0, network::PackageTypeEnum::LIST};
     this->rawSocket->sendPackage(initialPackage);
-
     this->wait_ack(initialPackage);
 
     std::cout << "\n---------------[LISTA]---------------\n";

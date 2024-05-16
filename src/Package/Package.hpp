@@ -11,12 +11,10 @@
 namespace network {
 class Package {
  public:
+  Package() = default;
   Package(uint8_t initMarker, uint8_t dataSize, uint8_t sequence, PackageTypeEnum type, const uint8_t* data);
   Package(uint8_t initMarker, uint8_t dataSize, uint8_t sequence, PackageTypeEnum type);
   Package(const char* const buffer, size_t bytes);
-
-  Package(Package&& package);
-  Package& operator=(Package&& package);
 
   virtual ~Package() = default;
 
@@ -35,7 +33,6 @@ class Package {
 
   bool checkCrc();
 
-  // Remove it
   void dummy();
 
  private:

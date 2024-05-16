@@ -33,8 +33,10 @@ void ServerListConnection::run() {
       uint8_t errorCode[1] = {1};
       Package error{Constants::INIT_MARKER, 1, 0, PackageTypeEnum::ERROR, errorCode};
       this->rawSocket->sendPackage(error);
+      std::cout << "Finalizando conexao - LIST\n" << std::endl;
 
       this->wait_ack(error);
+      this->rawSocket->inactivateTimeout();
       return;
     }
 
@@ -62,7 +64,7 @@ void ServerListConnection::run() {
     // Sending packages
     std::vector<Package>::iterator it_package{packages.begin()};
     while (it_package != packages.end()) {
-      std::cout << "Enviando pacote: " << (int)(*it_package).getSequence() << std::endl;
+      std::cout << "Enviando pacote: " << static_cast<int>((*it_package).getSequence()) << std::endl;
 
       this->rawSocket->sendPackage((*it_package));
 
