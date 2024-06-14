@@ -20,31 +20,33 @@ void ClientListConnection::run() {
       Package package{this->rawSocket->recvPackage()};
 
       if (package.checkCrc()) {
-        Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
-        switch (package.getType()) {
-          case PackageTypeEnum::SHOW: {
-            for (size_t i = 0; i < package.getDataSize(); ++i) std::cout << package.getData()[i];
-            this->lastSequence = package.getSequence();
+        if (this->lastSequence != package.getSequence()) {
+          Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
+          switch (package.getType()) {
+            case PackageTypeEnum::SHOW: {
+              for (size_t i = 0; i < package.getDataSize(); ++i) std::cout << package.getData()[i];
+              this->lastSequence = package.getSequence();
 
-            this->rawSocket->sendPackage(ack);
-            break;
-          }
-          case PackageTypeEnum::ERROR: {
-            std::cout << "Falha de acesso no diretorio de videos. Encerrando..." << std::endl;
-            this->rawSocket->sendPackage(ack);
+              this->rawSocket->sendPackage(ack);
+              break;
+            }
+            case PackageTypeEnum::ERROR: {
+              std::cout << "Falha de acesso no diretorio de videos. Encerrando..." << std::endl;
+              this->rawSocket->sendPackage(ack);
 
-            running = false;
-            break;
-          }
-          case PackageTypeEnum::END_TX: {
-            std::cout << std::endl;
-            this->rawSocket->sendPackage(ack);
+              running = false;
+              break;
+            }
+            case PackageTypeEnum::END_TX: {
+              std::cout << std::endl;
+              this->rawSocket->sendPackage(ack);
 
-            running = false;
-            break;
-          }
-          default: {
-            break;
+              running = false;
+              break;
+            }
+            default: {
+              break;
+            }
           }
         }
       } else {

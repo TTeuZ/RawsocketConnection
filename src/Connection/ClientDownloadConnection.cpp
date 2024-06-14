@@ -37,6 +37,8 @@ void ClientDownloadConnection::run() {
             fileSize |= static_cast<uintmax_t>(package.getData()[i]) << ((7 - i) * 8);
 
           this->rawSocket->sendPackage(ack);
+          this->lastSequence = package.getSequence();
+
           running = false;
         } else {
           std::cout << "Arquivo inexistente!" << std::endl;
@@ -45,7 +47,6 @@ void ClientDownloadConnection::run() {
 
           return;
         }
-
       } else {
         Package nack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::NACK};
         this->rawSocket->sendPackage(nack);
@@ -64,24 +65,21 @@ void ClientDownloadConnection::run() {
     std::vector<Package> packages;
     std::array<Package, WINDOW_SIZE> windowPackages;
     while (recvPackages < totalPackages) {
-      windowPackages[windowCount] = this->rawSocket->recvPackage();
-      ++windowCount;
-      ++recvPackages;
+      Package package{this->rawSocket->recvPackage()};
+
+      if (package.checkCrc()) {
+        if (this->lastSequence != package.getSequence()) {
+          windowPackages[windowCount] = package;
+          ++windowCount;
+          ++recvPackages;
+          this->lastSequence = package.getSequence();
+        }
+      } else
+        crcFailed = true;
 
       if ((windowCount % WINDOW_SIZE) == 0 || recvPackages == totalPackages) {
         Package ack{Constants::INIT_MARKER, 0, windowPackages[WINDOW_SIZE - 1].getSequence(), PackageTypeEnum::ACK};
         Package nack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::NACK};
-        this->lastSequence = windowPackages[WINDOW_SIZE - 1].getSequence();
-        crcFailed = false;
-
-        for (size_t i = 0; i < WINDOW_SIZE; ++i) {
-          if (!windowPackages[i].checkCrc()) {
-            crcFailed = true;
-
-            recvPackages -= recvPackages != totalPackages ? WINDOW_SIZE : windowCount;
-            break;
-          }
-        }
 
         if (!crcFailed) {
           size_t range{recvPackages != totalPackages ? WINDOW_SIZE : windowCount};
@@ -89,9 +87,12 @@ void ClientDownloadConnection::run() {
           this->rawSocket->sendPackage(ack);
 
           this->showProgress(recvPackages, totalPackages);
-        } else
+        } else {
+          recvPackages -= recvPackages != totalPackages ? WINDOW_SIZE : windowCount;
           this->rawSocket->sendPackage(nack);
+        }
 
+        crcFailed = false;
         windowCount = 0;
       }
     }
@@ -133,7 +134,7 @@ void ClientDownloadConnection::run() {
     std::string command{"xdg-open "};
     command += path;
 
-    if (system(command.c_str()) == -1) std::cout << "Impossibilitasdo de abrir o player padrao!\n" << std::endl;
+    if (system(command.c_str()) == -1) std::cout << "Impossibilitado de abrir o player padrao!\n" << std::endl;
 
     packages.clear();
   } catch (exceptions::TimeoutException& e) {
