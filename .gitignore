@@ -35,5 +35,8 @@
 Client
 Server
 
+# Videos
+resources/
+
 # VS Code
 .vscode
