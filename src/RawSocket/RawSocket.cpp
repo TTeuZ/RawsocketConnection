@@ -1,7 +1,7 @@
 #include "RawSocket.hpp"
 
 namespace network {
-RawSocket::RawSocket(const bool loopback) : loopback{loopback}, skipNext{false} {
+RawSocket::RawSocket(const bool loopback) : loopback{loopback}, skipNext{0} {
   const char* interface_name = loopback ? Constants::LOOPBACK_INTERFACE_NAME : Constants::ETHERNET_INTERFACE_NAME;
 
   this->socket_id = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));

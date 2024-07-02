@@ -3,4 +3,4 @@
 using namespace exceptions;
 
 SendFailedException::SendFailedException(const std::string& desc)
-    : runtime_error{"Fail in create socket connection"}, desc{desc} {};
+    : runtime_error{"Fail in send package through socket"}, desc{desc} {};

@@ -7,9 +7,9 @@ void Connection::wait_ack(const Package& package) const {
   while (true) {
     Package package{this->rawSocket->recvPackage()};
 
-    if (package.getType() != PackageTypeEnum::ACK)
+    if (package.getType() == PackageTypeEnum::NACK)
       this->rawSocket->sendPackage(package);
-    else
+    else if (package.getType() == PackageTypeEnum::ACK)
       return;
   }
 }

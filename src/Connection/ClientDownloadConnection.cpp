@@ -20,6 +20,7 @@ void ClientDownloadConnection::run() {
     const uint8_t* data{reinterpret_cast<const uint8_t*>(this->videoName.c_str())};
     Package initialPackage{Constants::INIT_MARKER, static_cast<uint8_t>(this->videoName.length()), 0,
                            PackageTypeEnum::DOWNLOAD, data};
+
     this->rawSocket->sendPackage(initialPackage);
     this->wait_ack(initialPackage);
 
@@ -40,7 +41,7 @@ void ClientDownloadConnection::run() {
           this->lastSequence = package.getSequence();
 
           running = false;
-        } else {
+        } else if (package.getType() == PackageTypeEnum::ERROR) {
           std::cout << "Arquivo inexistente!" << std::endl;
           this->rawSocket->sendPackage(ack);
           this->rawSocket->inactivateTimeout();
@@ -103,12 +104,13 @@ void ClientDownloadConnection::run() {
       Package package{this->rawSocket->recvPackage()};
 
       if (package.checkCrc()) {
-        Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
-        this->rawSocket->sendPackage(ack);
+        if (package.getType() == PackageTypeEnum::END_TX) {
+          Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
+          this->rawSocket->sendPackage(ack);
 
-        std::cout << "\n" << std::endl;
-        running = false;
-
+          std::cout << "\n" << std::endl;
+          running = false;
+        }
       } else {
         Package nack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::NACK};
         this->rawSocket->sendPackage(nack);
