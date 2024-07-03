@@ -60,41 +60,40 @@ void ClientDownloadConnection::run() {
     uintmax_t totalPackages{static_cast<uintmax_t>(std::ceil(static_cast<double>(fileSize) / MAX_DATA_SIZE))};
 
     // Receive packages
-    bool crcFailed{false};
     size_t windowCount{0};
     uintmax_t recvPackages{0};
     std::vector<Package> packages;
-    std::array<Package, WINDOW_SIZE> windowPackages;
+    std::vector<Package> windowPackages;
     while (recvPackages < totalPackages) {
       Package package{this->rawSocket->recvPackage()};
 
       if (package.checkCrc()) {
-        if (this->lastSequence != package.getSequence()) {
-          windowPackages[windowCount] = package;
+        if (!this->isDuplicated(windowPackages, package)) {
+          windowPackages.push_back(package);
           ++windowCount;
           ++recvPackages;
-          this->lastSequence = package.getSequence();
         }
       } else
-        crcFailed = true;
+        ++windowCount;
 
       if ((windowCount % WINDOW_SIZE) == 0 || recvPackages == totalPackages) {
-        Package ack{Constants::INIT_MARKER, 0, windowPackages[WINDOW_SIZE - 1].getSequence(), PackageTypeEnum::ACK};
-        Package nack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::NACK};
+        this->lastSequence = windowPackages.back().getSequence();
 
-        if (!crcFailed) {
-          size_t range{recvPackages != totalPackages ? WINDOW_SIZE : windowCount};
-          for (size_t i = 0; i < range; ++i) packages.push_back(windowPackages[i]);
+        if (windowPackages.size() == WINDOW_SIZE) {
+          Package ack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::ACK};
           this->rawSocket->sendPackage(ack);
-
-          this->showProgress(recvPackages, totalPackages);
         } else {
-          recvPackages -= recvPackages != totalPackages ? WINDOW_SIZE : windowCount;
+          uint8_t nackSequence = this->lastSequence + 1 <= 31 ? this->lastSequence + 1 : 0;
+          Package nack{Constants::INIT_MARKER, 0, nackSequence, PackageTypeEnum::NACK};
           this->rawSocket->sendPackage(nack);
         }
 
-        crcFailed = false;
+        size_t range{windowPackages.size()};
+        for (size_t i = 0; i < range; ++i) packages.push_back(windowPackages.at(i));
+        windowPackages.clear();
+
         windowCount = 0;
+        this->showProgress(recvPackages, totalPackages);
       }
     }
 
@@ -145,6 +144,16 @@ void ClientDownloadConnection::run() {
   }
 
   this->rawSocket->inactivateTimeout();
+}
+
+bool ClientDownloadConnection::isDuplicated(const std::vector<Package>& windowPackages, const Package& package) const {
+  if (package.getSequence() == this->lastSequence) return true;
+
+  std::vector<Package>::const_iterator it_package =
+      std::find_if(windowPackages.begin(), windowPackages.end(),
+                   [package](const Package& pkg) { return pkg.getSequence() == package.getSequence(); });
+
+  return it_package != windowPackages.end();
 }
 
 void ClientDownloadConnection::showProgress(const uintmax_t recvPackages, const uintmax_t totalPackages) const {

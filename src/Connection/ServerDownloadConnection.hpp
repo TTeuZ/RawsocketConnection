@@ -1,6 +1,7 @@
 #ifndef SERVER_DOWNLOAD_CONNECTION_HPP
 #define SERVER_DOWNLOAD_CONNECTION_HPP
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 

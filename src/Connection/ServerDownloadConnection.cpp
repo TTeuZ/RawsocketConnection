@@ -66,19 +66,27 @@ void ServerDownloadConnection::run() {
 
     // Sending packages
     size_t windowCount{0};
+    std::vector<uint8_t> sentSequences;
     std::vector<Package>::iterator it_package{packages.begin()};
     while (it_package != packages.end()) {
       std::cout << "Enviando pacote: " << (int)(*it_package).getSequence() << std::endl;
 
+      sentSequences.push_back((*it_package).getSequence());
       this->rawSocket->sendPackage((*it_package++));
       ++windowCount;
 
       if ((windowCount % WINDOW_SIZE) == 0 || it_package == packages.end()) {
         Package package{this->rawSocket->recvPackage()};
 
-        if (package.getType() != PackageTypeEnum::ACK)
-          it_package -= it_package != packages.end() ? WINDOW_SIZE : windowCount;
+        if (package.getType() == PackageTypeEnum::NACK) {
+          uint8_t nackSequence = package.getSequence();
+          long failedQty{std::count_if(sentSequences.begin(), sentSequences.end(),
+                                       [nackSequence](uint8_t sequence) { return sequence >= nackSequence; })};
 
+          it_package -= failedQty;
+        }
+
+        sentSequences.clear();
         windowCount = 0;
       }
     }
