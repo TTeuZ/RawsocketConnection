@@ -36,7 +36,7 @@ Client
 Server
 
 # Videos
-resources/
+*.mp4
 
 # VS Code
 .vscode
