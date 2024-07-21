@@ -21,7 +21,9 @@ void ServerListConnection::run() {
       struct dirent* entry;
 
       while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0 ||
+            strcmp(entry->d_name, "README.md") == 0)
+          continue;
 
         buffer.push_back('-');
         buffer.push_back(' ');
