@@ -72,22 +72,20 @@ Package RawSocket::recvPackage() {
 
   while (true) {
     if (this->can_read()) {
-      do {
-        if ((recv_len = read(this->socket_id, &buffer, sizeof(buffer))) == -1)
-          throw exceptions::TimeoutException("Timeout!");
+      if ((recv_len = read(this->socket_id, &buffer, sizeof(buffer))) == -1)
+        throw exceptions::TimeoutException("Timeout!");
 
+      if (buffer[0] == Constants::INIT_MARKER) {
         if (this->loopback) {
-          if (buffer[0] == Constants::INIT_MARKER) {
-            if (this->skipNext <= 0) {
-              this->skipNext++;
-              return Package{buffer, static_cast<size_t>(recv_len)};
-            } else {
-              this->skipNext--;
-            }
+          if (this->skipNext <= 0) {
+            this->skipNext++;
+            return Package{buffer, static_cast<size_t>(recv_len)};
+          } else {
+            this->skipNext--;
           }
         } else
           return Package{buffer, static_cast<size_t>(recv_len)};
-      } while (true);
+      }
     }
   }
 }

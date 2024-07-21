@@ -80,9 +80,11 @@ void ServerDownloadConnection::run() {
 
         if (package.getType() == PackageTypeEnum::NACK) {
           uint8_t nackSequence = package.getSequence();
-          long failedQty{std::count_if(sentSequences.begin(), sentSequences.end(),
-                                       [nackSequence](uint8_t sequence) { return sequence >= nackSequence; })};
 
+          std::vector<uint8_t>::iterator it = std::find(sentSequences.begin(), sentSequences.end(), nackSequence);
+          int indexOfFailed = std::distance(sentSequences.begin(), it);
+
+          long failedQty = sentSequences.size() - indexOfFailed;
           it_package -= failedQty;
         }
 

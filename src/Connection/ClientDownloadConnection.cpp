@@ -54,32 +54,31 @@ void ClientDownloadConnection::run() {
       }
     }
 
-    // @TODO CHECAR SE TEMOS ESPACO E SE NAO TIVER MANDAR UM ERRO.
-
     std::cout << "\nRecebendo arquivo - " << this->videoName << std::endl;
     uintmax_t totalPackages{static_cast<uintmax_t>(std::ceil(static_cast<double>(fileSize) / MAX_DATA_SIZE))};
 
     // Receive packages
+    bool crcFailed{false};
     size_t windowCount{0};
     uintmax_t recvPackages{0};
     std::vector<Package> packages;
     std::vector<Package> windowPackages;
     while (recvPackages < totalPackages) {
       Package package{this->rawSocket->recvPackage()};
+      if (!package.checkCrc()) crcFailed = true;
 
-      if (package.checkCrc()) {
+      if (!crcFailed) {
         if (!this->isDuplicated(windowPackages, package)) {
           windowPackages.push_back(package);
           ++windowCount;
-          ++recvPackages;
         }
       } else
         ++windowCount;
 
-      if ((windowCount % WINDOW_SIZE) == 0 || recvPackages == totalPackages) {
-        this->lastSequence = windowPackages.back().getSequence();
+      if ((windowCount % WINDOW_SIZE) == 0 || (recvPackages + windowCount) == totalPackages) {
+        if (!windowPackages.empty()) this->lastSequence = windowPackages.back().getSequence();
 
-        if (windowPackages.size() == WINDOW_SIZE) {
+        if (windowPackages.size() == windowCount) {
           Package ack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::ACK};
           this->rawSocket->sendPackage(ack);
         } else {
@@ -88,6 +87,7 @@ void ClientDownloadConnection::run() {
           this->rawSocket->sendPackage(nack);
         }
 
+        recvPackages += windowPackages.size();
         size_t range{windowPackages.size()};
         for (size_t i = 0; i < range; ++i) packages.push_back(windowPackages.at(i));
         windowPackages.clear();
@@ -122,7 +122,6 @@ void ClientDownloadConnection::run() {
     std::ofstream outFile(path);
 
     std::cout << "Salvando arquivo em " << path << std::endl;
-
     if (outFile) {
       while (it_package != packages.end()) {
         for (size_t i = 0; i < (*it_package).getDataSize(); ++i) outFile << (*it_package).getData()[i];
@@ -132,9 +131,7 @@ void ClientDownloadConnection::run() {
     outFile.close();
 
     // Opening video
-    std::string command{"xdg-open "};
-    command += path;
-
+    std::string command{"xdg-open " + path};
     if (system(command.c_str()) == -1) std::cout << "Impossibilitado de abrir o player padrao!\n" << std::endl;
 
     packages.clear();
