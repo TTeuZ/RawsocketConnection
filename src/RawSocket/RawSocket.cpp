@@ -25,30 +25,19 @@ RawSocket::RawSocket(const bool loopback) : loopback{loopback}, skipNext{0} {
   if (setsockopt(this->socket_id, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &this->mr, sizeof(this->mr)) == -1)
     throw exceptions::SocketCreateException("Error executing setsockopt!");
 
-  this->inactivateTimeout();
-}
+  this->timeout_select.tv_sec = Constants::TIMEOUT;
+  this->timeout_select.tv_usec = 0;
 
-RawSocket::~RawSocket() { close(this->socket_id); }
-
-void RawSocket::activateTimeout() {
-  this->timeout.tv_sec = Constants::TIMEOUT;
-  this->timeout.tv_usec = 0;
-  if (setsockopt(this->socket_id, SOL_SOCKET, SO_SNDTIMEO, &this->timeout, sizeof(this->timeout)) < 0)
+  this->timeout_main.tv_sec = Constants::TIMEOUT;
+  this->timeout_main.tv_usec = 0;
+  if (setsockopt(this->socket_id, SOL_SOCKET, SO_SNDTIMEO, (char*)&this->timeout_main, sizeof(this->timeout_main)) < 0)
     throw exceptions::SocketCreateException("Error activating timeout for send!");
 
-  if (setsockopt(this->socket_id, SOL_SOCKET, SO_RCVTIMEO, &this->timeout, sizeof(this->timeout)) < 0)
+  if (setsockopt(this->socket_id, SOL_SOCKET, SO_RCVTIMEO, (char*)&this->timeout_main, sizeof(this->timeout_main)) < 0)
     throw exceptions::SocketCreateException("Error activating timeout for recv!");
 }
 
-void RawSocket::inactivateTimeout() {
-  this->timeout.tv_sec = 0;
-  this->timeout.tv_usec = 0;
-  if (setsockopt(this->socket_id, SOL_SOCKET, SO_SNDTIMEO, &this->timeout, sizeof(this->timeout)) < 0)
-    throw exceptions::SocketCreateException("Error inactivating timeout for send!");
-
-  if (setsockopt(this->socket_id, SOL_SOCKET, SO_RCVTIMEO, &this->timeout, sizeof(this->timeout)) < 0)
-    throw exceptions::SocketCreateException("Error inactivating timeout for recv!");
-}
+RawSocket::~RawSocket() { close(this->socket_id); }
 
 void RawSocket::sendPackage(Package& package) {
   BitArray bits{package.getRawPackage()};
@@ -95,7 +84,7 @@ bool RawSocket::can_write() {
 
   FD_ZERO(&write_fd);
   FD_SET(this->socket_id, &write_fd);
-  int ready_fds = select(this->socket_id + 1, NULL, &write_fd, NULL, &this->timeout);
+  int ready_fds = select(this->socket_id + 1, NULL, &write_fd, NULL, &this->timeout_select);
   if (ready_fds > 0 && FD_ISSET(this->socket_id, &write_fd)) return true;
   return false;
 }
@@ -105,7 +94,7 @@ bool RawSocket::can_read() {
 
   FD_ZERO(&read_fd);
   FD_SET(this->socket_id, &read_fd);
-  int ready_fds = select(this->socket_id + 1, &read_fd, NULL, NULL, &this->timeout);
+  int ready_fds = select(this->socket_id + 1, &read_fd, NULL, NULL, &this->timeout_select);
   if (ready_fds > 0 && FD_ISSET(this->socket_id, &read_fd)) return true;
   return false;
 }

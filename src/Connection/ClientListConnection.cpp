@@ -4,7 +4,6 @@ namespace network {
 ClientListConnection::ClientListConnection(RawSocket* rawSocket) : Connection{rawSocket} { this->lastSequence = 0; };
 
 void ClientListConnection::run() {
-  this->rawSocket->activateTimeout();
   bool running{true};
 
   try {
@@ -56,9 +55,6 @@ void ClientListConnection::run() {
     }
   } catch (exceptions::TimeoutException& e) {
     std::cerr << "Connection Timeout - closing" << std::endl;
-    this->rawSocket->inactivateTimeout();
   }
-
-  this->rawSocket->inactivateTimeout();
 }
 }  // namespace network

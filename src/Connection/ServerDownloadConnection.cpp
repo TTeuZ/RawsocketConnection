@@ -8,8 +8,6 @@ ServerDownloadConnection::ServerDownloadConnection(RawSocket* rawSocket, const s
 };
 
 void ServerDownloadConnection::run() {
-  this->rawSocket->activateTimeout();
-
   try {
     std::cout << "Iniciando conexao - DOWNLOAD - " << this->videoName << std::endl;
 
@@ -27,7 +25,6 @@ void ServerDownloadConnection::run() {
       this->rawSocket->sendPackage(error);
 
       this->wait_ack(error);
-      this->rawSocket->inactivateTimeout();
       return;
     }
 
@@ -105,9 +102,6 @@ void ServerDownloadConnection::run() {
     packages.clear();
   } catch (exceptions::TimeoutException& e) {
     std::cerr << "Connection Timeout - closing" << std::endl;
-    this->rawSocket->inactivateTimeout();
   }
-
-  this->rawSocket->inactivateTimeout();
 }
 }  // namespace network

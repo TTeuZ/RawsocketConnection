@@ -4,8 +4,6 @@ namespace network {
 ServerListConnection::ServerListConnection(RawSocket* rawSocket) : Connection{rawSocket} { this->lastSequence = 0; };
 
 void ServerListConnection::run() {
-  this->rawSocket->activateTimeout();
-
   try {
     std::cout << "Iniciando conexao - LIST" << std::endl;
 
@@ -38,7 +36,6 @@ void ServerListConnection::run() {
       std::cout << "Finalizando conexao - LIST\n" << std::endl;
 
       this->wait_ack(error);
-      this->rawSocket->inactivateTimeout();
       return;
     }
 
@@ -86,9 +83,6 @@ void ServerListConnection::run() {
     packages.clear();
   } catch (exceptions::TimeoutException& e) {
     std::cerr << "Connection Timeout - closing" << std::endl;
-    this->rawSocket->inactivateTimeout();
   }
-
-  this->rawSocket->inactivateTimeout();
 }
 }  // namespace network

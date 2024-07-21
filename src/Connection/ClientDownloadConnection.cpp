@@ -13,7 +13,6 @@ void ClientDownloadConnection::run() {
     return;
   }
 
-  this->rawSocket->activateTimeout();
   bool running{true};
 
   try {
@@ -44,7 +43,6 @@ void ClientDownloadConnection::run() {
         } else if (package.getType() == PackageTypeEnum::ERROR) {
           std::cout << "Arquivo inexistente!" << std::endl;
           this->rawSocket->sendPackage(ack);
-          this->rawSocket->inactivateTimeout();
 
           return;
         }
@@ -137,10 +135,7 @@ void ClientDownloadConnection::run() {
     packages.clear();
   } catch (exceptions::TimeoutException& e) {
     std::cerr << "Connection Timeout - closing" << std::endl;
-    this->rawSocket->inactivateTimeout();
   }
-
-  this->rawSocket->inactivateTimeout();
 }
 
 bool ClientDownloadConnection::isDuplicated(const std::vector<Package>& windowPackages, const Package& package) const {

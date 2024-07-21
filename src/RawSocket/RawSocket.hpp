@@ -31,9 +31,6 @@ class RawSocket {
 
   virtual ~RawSocket();
 
-  void activateTimeout();
-  void inactivateTimeout();
-
   void sendPackage(Package& package);
 
   Package recvPackage();
@@ -46,7 +43,8 @@ class RawSocket {
   int socket_id;
   struct sockaddr_ll address;
   struct packet_mreq mr;
-  struct timeval timeout;
+  struct timeval timeout_main;
+  struct timeval timeout_select;
 
   // Loopback only
   int skipNext;
