@@ -48,12 +48,16 @@ void RawSocket::sendPackage(Package& package) {
       if (write(this->socket_id, bits.getData(), bits.sizeBytes()) == -1)
         throw exceptions::SendRecvFailedException("Error sending package");
 
+      this->sendTimes = 0;
       sent = true;
     } else
       this->sendTimes++;
   }
 
-  if (this->sendTimes == Constants::TIMEOUT_RETRY) throw exceptions::TimeoutException("Timeout!");
+  if (this->sendTimes == Constants::TIMEOUT_RETRY) {
+    this->sendTimes = 0;
+    throw exceptions::TimeoutException("Timeout!");
+  }
 }
 
 int RawSocket::recvPackage(Package& package) {
@@ -70,12 +74,14 @@ int RawSocket::recvPackage(Package& package) {
         if (this->loopback) {
           if (this->skipNext <= 0) {
             this->skipNext++;
+            this->recvTimes = 0;
             package = Package{buffer, static_cast<size_t>(recv_len)};
             return Constants::STATUS_OK;
           } else {
             this->skipNext--;
           }
         } else {
+          this->recvTimes = 0;
           package = Package{buffer, static_cast<size_t>(recv_len)};
           return Constants::STATUS_OK;
         }
