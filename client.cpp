@@ -8,6 +8,7 @@
 int main(int argc, char** argv) {
   bool loopback = network::ArgParser::parseArguments(argc, argv);
   network::RawSocket* rawSocket{new network::RawSocket{loopback}};
+  rawSocket->activeTimeout();
 
   std::cout << "Seja bem vindo ao RedesTube" << std::endl;
   std::cout << "Selecione uma das seguintes opcoes: " << std::endl;

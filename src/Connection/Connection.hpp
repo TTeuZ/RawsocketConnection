@@ -13,7 +13,7 @@ class Connection {
   virtual void run() = 0;
 
  protected:
-  void wait_ack(const Package& package) const;
+  void wait_ack(Package& package);
 
   RawSocket* rawSocket;
   uint8_t lastSequence;

@@ -5,6 +5,8 @@ ClientListConnection::ClientListConnection(RawSocket* rawSocket) : Connection{ra
 
 void ClientListConnection::run() {
   bool running{true};
+  Package package;
+  int status;
 
   try {
     Package initialPackage{Constants::INIT_MARKER, 0, 0, network::PackageTypeEnum::LIST};
@@ -16,45 +18,48 @@ void ClientListConnection::run() {
     // Start receive data packages
     running = true;
     while (running) {
-      Package package{this->rawSocket->recvPackage()};
+      status = this->rawSocket->recvPackage(package);
 
-      if (package.checkCrc()) {
-        if (this->lastSequence != package.getSequence()) {
-          Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
-          switch (package.getType()) {
-            case PackageTypeEnum::SHOW: {
-              for (size_t i = 0; i < package.getDataSize(); ++i) std::cout << package.getData()[i];
-              this->lastSequence = package.getSequence();
+      if (status == Constants::STATUS_OK) {
+        if (package.checkCrc()) {
+          if (this->lastSequence != package.getSequence()) {
+            Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
 
-              this->rawSocket->sendPackage(ack);
-              break;
-            }
-            case PackageTypeEnum::ERROR: {
-              std::cout << "Falha de acesso no diretorio de videos. Encerrando..." << std::endl;
-              this->rawSocket->sendPackage(ack);
+            switch (package.getType()) {
+              case PackageTypeEnum::SHOW: {
+                for (size_t i = 0; i < package.getDataSize(); ++i) std::cout << package.getData()[i];
+                this->lastSequence = package.getSequence();
 
-              running = false;
-              break;
-            }
-            case PackageTypeEnum::END_TX: {
-              std::cout << std::endl;
-              this->rawSocket->sendPackage(ack);
+                this->rawSocket->sendPackage(ack);
+                break;
+              }
+              case PackageTypeEnum::ERROR: {
+                std::cout << "Falha de acesso no diretorio de videos. Encerrando..." << std::endl;
+                this->rawSocket->sendPackage(ack);
 
-              running = false;
-              break;
-            }
-            default: {
-              break;
+                running = false;
+                break;
+              }
+              case PackageTypeEnum::END_TX: {
+                std::cout << std::endl;
+                this->rawSocket->sendPackage(ack);
+
+                running = false;
+                break;
+              }
+              default: {
+                break;
+              }
             }
           }
+        } else {
+          Package nack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::NACK};
+          this->rawSocket->sendPackage(nack);
         }
-      } else {
-        Package nack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::NACK};
-        this->rawSocket->sendPackage(nack);
       }
     }
   } catch (exceptions::TimeoutException& e) {
-    std::cerr << "Connection Timeout - closing" << std::endl;
+    std::cerr << "Connection Timeout - Closing..." << std::endl;
   }
 }
 }  // namespace network

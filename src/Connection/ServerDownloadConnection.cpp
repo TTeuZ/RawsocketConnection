@@ -8,6 +8,10 @@ ServerDownloadConnection::ServerDownloadConnection(RawSocket* rawSocket, const s
 };
 
 void ServerDownloadConnection::run() {
+  this->rawSocket->activeTimeout();
+  Package package;
+  int status;
+
   try {
     std::cout << "Iniciando conexao - DOWNLOAD - " << this->videoName << std::endl;
 
@@ -21,10 +25,11 @@ void ServerDownloadConnection::run() {
       std::cout << "Finalizando conexao - DOWNLOAD - " << this->videoName << std::endl;
 
       uint8_t errorCode[1] = {2};
-      Package error{Constants::INIT_MARKER, 1, 0, PackageTypeEnum::ERROR, errorCode};
+      Package error{Constants::INIT_MARKER, 1, 1, PackageTypeEnum::ERROR, errorCode};
       this->rawSocket->sendPackage(error);
 
       this->wait_ack(error);
+      this->rawSocket->deactiveTimeout();
       return;
     }
 
@@ -73,9 +78,11 @@ void ServerDownloadConnection::run() {
       ++windowCount;
 
       if ((windowCount % WINDOW_SIZE) == 0 || it_package == packages.end()) {
-        Package package{this->rawSocket->recvPackage()};
+        status = this->rawSocket->recvPackage(package);
 
-        if (package.getType() == PackageTypeEnum::NACK) {
+        if (status == Constants::STATUS_RETRY)
+          it_package -= windowCount;
+        else if (package.getType() == PackageTypeEnum::NACK) {
           uint8_t nackSequence = package.getSequence();
 
           std::vector<uint8_t>::iterator it = std::find(sentSequences.begin(), sentSequences.end(), nackSequence);
@@ -100,7 +107,9 @@ void ServerDownloadConnection::run() {
 
     file.close();
     packages.clear();
+    this->rawSocket->deactiveTimeout();
   } catch (exceptions::TimeoutException& e) {
+    this->rawSocket->deactiveTimeout();
     std::cerr << "Connection Timeout - closing" << std::endl;
   }
 }

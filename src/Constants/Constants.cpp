@@ -3,7 +3,11 @@
 namespace network {
 const char* Constants::LOOPBACK_INTERFACE_NAME{"lo"};
 const char* Constants::ETHERNET_INTERFACE_NAME{"TBD"};
-const int Constants::TIMEOUT{30};
+
+const int Constants::TIMEOUT{10};
+const int Constants::TIMEOUT_RETRY{5};
+const int Constants::STATUS_OK{0};
+const int Constants::STATUS_RETRY{-1};
 
 const uint8_t Constants::INIT_MARKER{126};
 const uint8_t Constants::CRC_POLYNOMIAL{0x07};

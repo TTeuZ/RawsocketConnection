@@ -12,12 +12,13 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <string>
 
-#include "../../exceptions/SendFailedException/SendFailedException.hpp"
+#include "../../exceptions/SendRecvFailedException/SendRecvFailedException.hpp"
 #include "../../exceptions/SocketCreateException/SocketCreateException.hpp"
 #include "../../exceptions/TimeoutException/TimeoutException.hpp"
 #include "../BitArray/BitArray.hpp"
@@ -32,19 +33,26 @@ class RawSocket {
   virtual ~RawSocket();
 
   void sendPackage(Package& package);
+  int recvPackage(Package& package);
 
-  Package recvPackage();
+  void activeTimeout();
+  void deactiveTimeout();
 
  private:
   bool can_write();
   bool can_read();
 
+  time_t timestamp();
+
   bool loopback;
   int socket_id;
   struct sockaddr_ll address;
   struct packet_mreq mr;
-  struct timeval timeout_main;
-  struct timeval timeout_select;
+
+  struct timeval timeout;
+  int sendTimes;
+  int recvTimes;
+  bool timeoutActivated;
 
   // Loopback only
   int skipNext;

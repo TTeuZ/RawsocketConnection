@@ -8,12 +8,14 @@ ClientDownloadConnection::ClientDownloadConnection(RawSocket* rawSocket, const s
 };
 
 void ClientDownloadConnection::run() {
+  bool running{true};
+  Package package;
+  int status;
+
   if (this->videoName.length() > MAX_DATA_SIZE) {
     std::cout << "Nome excedeu os limites!" << std::endl;
     return;
   }
-
-  bool running{true};
 
   try {
     const uint8_t* data{reinterpret_cast<const uint8_t*>(this->videoName.c_str())};
@@ -24,31 +26,32 @@ void ClientDownloadConnection::run() {
     this->wait_ack(initialPackage);
 
     // Waiting header
-    running = true;
     uintmax_t fileSize{0};
     while (running) {
-      Package package{this->rawSocket->recvPackage()};
+      status = this->rawSocket->recvPackage(package);
 
-      if (package.checkCrc()) {
-        Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
+      if (status == Constants::STATUS_OK) {
+        if (package.checkCrc()) {
+          Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
 
-        if (package.getType() == PackageTypeEnum::FILE_HEADER) {
-          for (size_t i = 0; i < package.getDataSize(); ++i)
-            fileSize |= static_cast<uintmax_t>(package.getData()[i]) << ((7 - i) * 8);
+          if (package.getType() == PackageTypeEnum::FILE_HEADER) {
+            for (size_t i = 0; i < package.getDataSize(); ++i)
+              fileSize |= static_cast<uintmax_t>(package.getData()[i]) << ((7 - i) * 8);
 
-          this->rawSocket->sendPackage(ack);
-          this->lastSequence = package.getSequence();
+            this->rawSocket->sendPackage(ack);
+            this->lastSequence = package.getSequence();
 
-          running = false;
-        } else if (package.getType() == PackageTypeEnum::ERROR) {
-          std::cout << "Arquivo inexistente!" << std::endl;
-          this->rawSocket->sendPackage(ack);
+            running = false;
+          } else if (package.getType() == PackageTypeEnum::ERROR) {
+            std::cout << "Arquivo inexistente!" << std::endl;
+            this->rawSocket->sendPackage(ack);
 
-          return;
+            return;
+          }
+        } else {
+          Package nack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::NACK};
+          this->rawSocket->sendPackage(nack);
         }
-      } else {
-        Package nack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::NACK};
-        this->rawSocket->sendPackage(nack);
       }
     }
 
@@ -62,55 +65,60 @@ void ClientDownloadConnection::run() {
     std::vector<Package> packages;
     std::vector<Package> windowPackages;
     while (recvPackages < totalPackages) {
-      Package package{this->rawSocket->recvPackage()};
-      if (!package.checkCrc()) crcFailed = true;
+      status = this->rawSocket->recvPackage(package);
 
-      if (!crcFailed) {
-        if (!this->isDuplicated(windowPackages, package)) {
-          windowPackages.push_back(package);
+      if (status == Constants::STATUS_OK) {
+        if (!package.checkCrc()) crcFailed = true;
+
+        if (!crcFailed) {
+          if (!this->isDuplicated(windowPackages, package)) {
+            windowPackages.push_back(package);
+            ++windowCount;
+          }
+        } else
           ++windowCount;
+
+        if ((windowCount % WINDOW_SIZE) == 0 || (recvPackages + windowCount) == totalPackages) {
+          if (!windowPackages.empty()) this->lastSequence = windowPackages.back().getSequence();
+
+          if (windowPackages.size() == windowCount) {
+            Package ack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::ACK};
+            this->rawSocket->sendPackage(ack);
+          } else {
+            uint8_t nackSequence = this->lastSequence + 1 <= 31 ? this->lastSequence + 1 : 0;
+            Package nack{Constants::INIT_MARKER, 0, nackSequence, PackageTypeEnum::NACK};
+            this->rawSocket->sendPackage(nack);
+          }
+
+          recvPackages += windowPackages.size();
+          size_t range{windowPackages.size()};
+          for (size_t i = 0; i < range; ++i) packages.push_back(windowPackages.at(i));
+          windowPackages.clear();
+
+          windowCount = 0;
+          this->showProgress(recvPackages, totalPackages);
         }
-      } else
-        ++windowCount;
-
-      if ((windowCount % WINDOW_SIZE) == 0 || (recvPackages + windowCount) == totalPackages) {
-        if (!windowPackages.empty()) this->lastSequence = windowPackages.back().getSequence();
-
-        if (windowPackages.size() == windowCount) {
-          Package ack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::ACK};
-          this->rawSocket->sendPackage(ack);
-        } else {
-          uint8_t nackSequence = this->lastSequence + 1 <= 31 ? this->lastSequence + 1 : 0;
-          Package nack{Constants::INIT_MARKER, 0, nackSequence, PackageTypeEnum::NACK};
-          this->rawSocket->sendPackage(nack);
-        }
-
-        recvPackages += windowPackages.size();
-        size_t range{windowPackages.size()};
-        for (size_t i = 0; i < range; ++i) packages.push_back(windowPackages.at(i));
-        windowPackages.clear();
-
-        windowCount = 0;
-        this->showProgress(recvPackages, totalPackages);
       }
     }
 
     // wait for end trasmition
     running = true;
     while (running) {
-      Package package{this->rawSocket->recvPackage()};
+      status = this->rawSocket->recvPackage(package);
 
-      if (package.checkCrc()) {
-        if (package.getType() == PackageTypeEnum::END_TX) {
-          Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
-          this->rawSocket->sendPackage(ack);
+      if (status == Constants::STATUS_OK) {
+        if (package.checkCrc()) {
+          if (package.getType() == PackageTypeEnum::END_TX) {
+            Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
+            this->rawSocket->sendPackage(ack);
 
-          std::cout << "\n" << std::endl;
-          running = false;
+            std::cout << "\n" << std::endl;
+            running = false;
+          }
+        } else {
+          Package nack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::NACK};
+          this->rawSocket->sendPackage(nack);
         }
-      } else {
-        Package nack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::NACK};
-        this->rawSocket->sendPackage(nack);
       }
     }
 

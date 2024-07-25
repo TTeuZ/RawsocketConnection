@@ -11,9 +11,10 @@
 int main(int argc, char** argv) {
   bool loopback = network::ArgParser::parseArguments(argc, argv);
   network::RawSocket* rawSocket{new network::RawSocket{loopback}};
+  network::Package package;
 
   while (true) {
-    network::Package package{rawSocket->recvPackage()};
+    rawSocket->recvPackage(package);
 
     if (package.checkCrc()) {
       switch (package.getType()) {

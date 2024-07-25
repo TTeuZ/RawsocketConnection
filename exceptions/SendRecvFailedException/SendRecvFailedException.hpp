@@ -4,11 +4,11 @@
 #include <stdexcept>
 
 namespace exceptions {
-class SendFailedException : public std::runtime_error {
+class SendRecvFailedException : public std::runtime_error {
  public:
-  explicit SendFailedException(const std::string& desc);
+  explicit SendRecvFailedException(const std::string& desc);
 
-  virtual ~SendFailedException() = default;
+  virtual ~SendRecvFailedException() = default;
 
   const std::string desc;
 };

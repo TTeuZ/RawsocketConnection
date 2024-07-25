@@ -3,13 +3,16 @@
 namespace network {
 Connection::Connection(RawSocket* rawSocket) : rawSocket{rawSocket} {};
 
-void Connection::wait_ack(const Package& package) const {
-  while (true) {
-    Package package{this->rawSocket->recvPackage()};
+void Connection::wait_ack(Package& sentPackage) {
+  Package receivedPackage;
+  int status;
 
-    if (package.getType() == PackageTypeEnum::NACK)
-      this->rawSocket->sendPackage(package);
-    else if (package.getType() == PackageTypeEnum::ACK)
+  while (true) {
+    status = this->rawSocket->recvPackage(receivedPackage);
+
+    if (status == Constants::STATUS_RETRY || receivedPackage.getType() == PackageTypeEnum::NACK)
+      this->rawSocket->sendPackage(sentPackage);
+    else if (receivedPackage.getType() == PackageTypeEnum::ACK)
       return;
   }
 }

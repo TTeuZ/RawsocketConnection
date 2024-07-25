@@ -20,7 +20,11 @@ class Constants {
 
   const static char* LOOPBACK_INTERFACE_NAME;
   const static char* ETHERNET_INTERFACE_NAME;
+
   const static int TIMEOUT;
+  const static int TIMEOUT_RETRY;
+  const static int STATUS_OK;
+  const static int STATUS_RETRY;
 
   const static uint8_t INIT_MARKER;
   const static uint8_t CRC_POLYNOMIAL;

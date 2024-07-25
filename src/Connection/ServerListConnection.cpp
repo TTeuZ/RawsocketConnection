@@ -4,6 +4,10 @@ namespace network {
 ServerListConnection::ServerListConnection(RawSocket* rawSocket) : Connection{rawSocket} { this->lastSequence = 0; };
 
 void ServerListConnection::run() {
+  this->rawSocket->activeTimeout();
+  Package package;
+  int status;
+
   try {
     std::cout << "Iniciando conexao - LIST" << std::endl;
 
@@ -31,11 +35,12 @@ void ServerListConnection::run() {
       closedir(dir);
     } else {
       uint8_t errorCode[1] = {1};
-      Package error{Constants::INIT_MARKER, 1, 0, PackageTypeEnum::ERROR, errorCode};
+      Package error{Constants::INIT_MARKER, 1, 1, PackageTypeEnum::ERROR, errorCode};
       this->rawSocket->sendPackage(error);
       std::cout << "Finalizando conexao - LIST\n" << std::endl;
 
       this->wait_ack(error);
+      this->rawSocket->deactiveTimeout();
       return;
     }
 
@@ -67,8 +72,8 @@ void ServerListConnection::run() {
 
       this->rawSocket->sendPackage((*it_package));
 
-      Package package{this->rawSocket->recvPackage()};
-      if (package.getType() == PackageTypeEnum::ACK) ++it_package;
+      status = this->rawSocket->recvPackage(package);
+      if (status == Constants::STATUS_OK && package.getType() == PackageTypeEnum::ACK) ++it_package;
     }
 
     // End transmissian
@@ -81,8 +86,10 @@ void ServerListConnection::run() {
 
     buffer.clear();
     packages.clear();
+    this->rawSocket->deactiveTimeout();
   } catch (exceptions::TimeoutException& e) {
-    std::cerr << "Connection Timeout - closing" << std::endl;
+    this->rawSocket->deactiveTimeout();
+    std::cerr << "Connection Timeout - Closing..." << std::endl;
   }
 }
 }  // namespace network
