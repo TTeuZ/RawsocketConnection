@@ -22,7 +22,6 @@ class ClientDownloadConnection : public Connection {
   void run() override;
 
  private:
-  bool isDuplicated(const std::vector<Package>& windowPackages, const Package& package) const;
   void showProgress(const uintmax_t recvPackages, const uintmax_t totalPackages) const;
 
   std::string videoName;

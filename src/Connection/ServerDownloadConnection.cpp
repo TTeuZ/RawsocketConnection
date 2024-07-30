@@ -69,30 +69,42 @@ void ServerDownloadConnection::run() {
     size_t windowCount{0};
     std::vector<uint8_t> sentSequences;
     std::vector<Package>::iterator it_package{packages.begin()};
+    long temp{0};
     while (it_package != packages.end()) {
       std::cout << "Enviando pacote: " << (int)(*it_package).getSequence() << std::endl;
 
       sentSequences.push_back((*it_package).getSequence());
       this->rawSocket->sendPackage((*it_package++));
       ++windowCount;
+      temp++;
 
       if ((windowCount % WINDOW_SIZE) == 0 || it_package == packages.end()) {
         status = this->rawSocket->recvPackage(package);
 
-        if (status == Constants::STATUS_RETRY)
-          it_package -= windowCount;
-        else if (package.getType() == PackageTypeEnum::NACK) {
-          uint8_t nackSequence = package.getSequence();
+        if (status == Constants::STATUS_OK) {
+          std::vector<uint8_t>::iterator it =
+              std::find(sentSequences.begin(), sentSequences.end(), package.getSequence());
+          int indexInSent = std::distance(sentSequences.begin(), it);
 
-          std::vector<uint8_t>::iterator it = std::find(sentSequences.begin(), sentSequences.end(), nackSequence);
-          int indexOfFailed = std::distance(sentSequences.begin(), it);
-
-          long failedQty = sentSequences.size() - indexOfFailed;
-          it_package -= failedQty;
+          switch (package.getType()) {
+            case PackageTypeEnum::ACK: {
+              sentSequences.erase(sentSequences.begin(), sentSequences.begin() + indexInSent);
+              windowCount -= indexInSent + 1;
+              break;
+            }
+            case PackageTypeEnum::NACK: {
+              long failedQty = sentSequences.size() - indexInSent;
+              it_package -= failedQty;
+              sentSequences.clear();
+              windowCount = 0;
+              break;
+            }
+          }
+        } else {
+          it_package -= sentSequences.size();
+          sentSequences.clear();
+          windowCount = 0;
         }
-
-        sentSequences.clear();
-        windowCount = 0;
       }
     }
 
