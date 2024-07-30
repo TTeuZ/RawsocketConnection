@@ -26,8 +26,8 @@ void ServerDownloadConnection::run() {
       uint8_t errorCode[1] = {2};
       Package error{Constants::INIT_MARKER, 1, 1, PackageTypeEnum::ERROR, errorCode};
       this->rawSocket->sendPackage(error);
-
       this->wait_ack(error);
+
       this->rawSocket->deactiveTimeout();
       return;
     }
@@ -79,9 +79,9 @@ void ServerDownloadConnection::run() {
       if ((windowCount % WINDOW_SIZE) == 0 || it_package == packages.end()) {
         status = this->rawSocket->recvPackage(package);
 
-        if (status == Constants::STATUS_RETRY)
+        if (status == Constants::STATUS_RETRY) {
           it_package -= sentSequences.size();
-        else if (package.getType() == PackageTypeEnum::NACK) {
+        } else if (package.getType() == PackageTypeEnum::NACK) {
           uint8_t nackSequence = package.getSequence();
 
           std::vector<uint8_t>::iterator it = std::find(sentSequences.begin(), sentSequences.end(), nackSequence);
@@ -100,8 +100,8 @@ void ServerDownloadConnection::run() {
     Package end_tx{Constants::INIT_MARKER, 0, static_cast<uint8_t>(count % Constants::MAX_SEQUENCE_SIZE),
                    PackageTypeEnum::END_TX};
     this->rawSocket->sendPackage(end_tx);
-
     this->wait_ack(end_tx);
+
     std::cout << "Finalizando conexao - DOWNLOAD - " << this->videoName << std::endl << std::endl;
 
     file.close();

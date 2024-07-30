@@ -41,8 +41,8 @@ void ClientListConnection::run() {
                 break;
               }
               case PackageTypeEnum::END_TX: {
-                std::cout << std::endl;
                 this->rawSocket->sendPackage(ack);
+                std::cout << std::endl;
 
                 running = false;
                 break;

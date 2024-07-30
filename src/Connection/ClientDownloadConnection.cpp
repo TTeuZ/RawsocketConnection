@@ -31,15 +31,14 @@ void ClientDownloadConnection::run() {
 
       if (status == Constants::STATUS_OK) {
         if (package.checkCrc()) {
-          Package ack{Constants::INIT_MARKER, 0, package.getSequence(), PackageTypeEnum::ACK};
+          this->lastSequence = package.getSequence();
+          Package ack{Constants::INIT_MARKER, 0, this->lastSequence, PackageTypeEnum::ACK};
 
           if (package.getType() == PackageTypeEnum::FILE_HEADER) {
             for (size_t i = 0; i < package.getDataSize(); ++i)
               fileSize |= static_cast<uintmax_t>(package.getData()[i]) << ((7 - i) * BITS_IN_BYTE);
 
             this->rawSocket->sendPackage(ack);
-            this->lastSequence = package.getSequence();
-
             running = false;
           } else if (package.getType() == PackageTypeEnum::ERROR) {
             std::cout << "Arquivo inexistente!" << std::endl;

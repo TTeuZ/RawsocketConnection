@@ -80,8 +80,8 @@ void ServerListConnection::run() {
     Package end_tx{Constants::INIT_MARKER, 0, static_cast<uint8_t>(count % Constants::MAX_SEQUENCE_SIZE),
                    PackageTypeEnum::END_TX};
     this->rawSocket->sendPackage(end_tx);
-
     this->wait_ack(end_tx);
+
     std::cout << "Finalizando conexao - LIST\n" << std::endl;
 
     buffer.clear();
