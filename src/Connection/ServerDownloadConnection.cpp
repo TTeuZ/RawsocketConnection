@@ -80,7 +80,7 @@ void ServerDownloadConnection::run() {
         status = this->rawSocket->recvPackage(package);
 
         if (status == Constants::STATUS_RETRY)
-          it_package -= windowCount;
+          it_package -= sentSequences.size();
         else if (package.getType() == PackageTypeEnum::NACK) {
           uint8_t nackSequence = package.getSequence();
 
