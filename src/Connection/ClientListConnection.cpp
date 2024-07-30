@@ -1,7 +1,7 @@
 #include "ClientListConnection.hpp"
 
 namespace network {
-ClientListConnection::ClientListConnection(RawSocket* rawSocket) : Connection{rawSocket} { this->lastSequence = 0; };
+ClientListConnection::ClientListConnection(RawSocket* rawSocket) : Connection{rawSocket} {};
 
 void ClientListConnection::run() {
   bool running{true};

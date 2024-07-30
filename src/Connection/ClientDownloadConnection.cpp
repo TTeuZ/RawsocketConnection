@@ -3,7 +3,6 @@
 namespace network {
 ClientDownloadConnection::ClientDownloadConnection(RawSocket* rawSocket, const std::string& videoName)
     : Connection{rawSocket} {
-  this->lastSequence = 0;
   this->videoName = videoName;
 };
 
@@ -36,7 +35,7 @@ void ClientDownloadConnection::run() {
 
           if (package.getType() == PackageTypeEnum::FILE_HEADER) {
             for (size_t i = 0; i < package.getDataSize(); ++i)
-              fileSize |= static_cast<uintmax_t>(package.getData()[i]) << ((7 - i) * 8);
+              fileSize |= static_cast<uintmax_t>(package.getData()[i]) << ((7 - i) * BITS_IN_BYTE);
 
             this->rawSocket->sendPackage(ack);
             this->lastSequence = package.getSequence();

@@ -3,7 +3,6 @@
 namespace network {
 ServerDownloadConnection::ServerDownloadConnection(RawSocket* rawSocket, const std::string& videoName)
     : Connection{rawSocket} {
-  this->lastSequence = 0;
   this->videoName = videoName;
 };
 
@@ -103,7 +102,7 @@ void ServerDownloadConnection::run() {
     this->rawSocket->sendPackage(end_tx);
 
     this->wait_ack(end_tx);
-    std::cout << "Finalizando conexao - DOWNLOAD - " << this->videoName << std::endl;
+    std::cout << "Finalizando conexao - DOWNLOAD - " << this->videoName << std::endl << std::endl;
 
     file.close();
     packages.clear();

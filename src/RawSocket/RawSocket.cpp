@@ -77,9 +77,8 @@ int RawSocket::recvPackage(Package& package) {
             this->recvTimes = 0;
             package = Package{buffer, static_cast<size_t>(recv_len)};
             return Constants::STATUS_OK;
-          } else {
+          } else
             this->skipNext--;
-          }
         } else {
           this->recvTimes = 0;
           package = Package{buffer, static_cast<size_t>(recv_len)};
@@ -98,6 +97,8 @@ int RawSocket::recvPackage(Package& package) {
     std::cerr << "Connection Timeout - Retrying..." << std::endl;
     this->recvTimes++;
   }
+
+  package = {};
   return Constants::STATUS_RETRY;
 }
 

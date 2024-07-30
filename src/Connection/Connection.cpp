@@ -1,7 +1,7 @@
 #include "Connection.hpp"
 
 namespace network {
-Connection::Connection(RawSocket* rawSocket) : rawSocket{rawSocket} {};
+Connection::Connection(RawSocket* rawSocket) : rawSocket{rawSocket}, lastSequence{0} {};
 
 void Connection::wait_ack(Package& sentPackage) {
   Package receivedPackage;
