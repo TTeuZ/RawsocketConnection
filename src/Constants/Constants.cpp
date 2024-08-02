@@ -2,7 +2,7 @@
 
 namespace network {
 const char* Constants::LOOPBACK_INTERFACE_NAME{"lo"};
-const char* Constants::ETHERNET_INTERFACE_NAME{"TBD"};
+const char* Constants::ETHERNET_INTERFACE_NAME{"enp0s31f6"};
 
 const int Constants::TIMEOUT{10};
 const int Constants::TIMEOUT_RETRY{5};
