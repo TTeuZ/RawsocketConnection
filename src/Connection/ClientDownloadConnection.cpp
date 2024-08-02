@@ -94,6 +94,7 @@ void ClientDownloadConnection::run() {
           windowPackages.clear();
 
           windowCount = 0;
+          crcFailed = false;
           this->showProgress(recvPackages, totalPackages);
         }
       }
