@@ -67,16 +67,10 @@ void ClientDownloadConnection::run() {
 
       if (status == Constants::STATUS_OK) {
         if (!package.checkCrc()) crcFailed = true;
+        if (!crcFailed) windowPackages.push_back(package);
+        ++windowCount;
 
-        if (!crcFailed) {
-          if (!this->isDuplicated(windowPackages, package)) {
-            windowPackages.push_back(package);
-            ++windowCount;
-          }
-        } else
-          ++windowCount;
-
-        if ((windowCount % WINDOW_SIZE) == 0 || (recvPackages + windowCount) == totalPackages) {
+        if ((windowCount % WINDOW_SIZE) == 0 || (recvPackages + windowCount) >= totalPackages) {
           if (!windowPackages.empty()) this->lastSequence = windowPackages.back().getSequence();
 
           if (windowPackages.size() == windowCount) {
@@ -88,9 +82,13 @@ void ClientDownloadConnection::run() {
             this->rawSocket->sendPackage(nack);
           }
 
-          recvPackages += windowPackages.size();
           size_t range{windowPackages.size()};
-          for (size_t i = 0; i < range; ++i) packages.push_back(windowPackages.at(i));
+          for (size_t i = 0; i < range; ++i) {
+            if (!this->isDuplicated(packages, windowPackages.at(i))) {
+              packages.push_back(windowPackages.at(i));
+              ++recvPackages;
+            }
+          }
           windowPackages.clear();
 
           windowCount = 0;
@@ -145,14 +143,14 @@ void ClientDownloadConnection::run() {
   }
 }
 
-bool ClientDownloadConnection::isDuplicated(const std::vector<Package>& windowPackages, const Package& package) const {
-  if (package.getSequence() == this->lastSequence) return true;
+bool ClientDownloadConnection::isDuplicated(const std::vector<Package>& packages, const Package& package) const {
+  size_t startIndex = packages.size() > 5 ? packages.size() - 5 : 0;
 
-  std::vector<Package>::const_iterator it_package =
-      std::find_if(windowPackages.begin(), windowPackages.end(),
-                   [package](const Package& pkg) { return pkg.getSequence() == package.getSequence(); });
+  std::vector<Package>::const_iterator it_package{std::find_if(
+      (packages.begin() + startIndex), packages.end(),
+      [package](const Package& vec_package) { return vec_package.getSequence() == package.getSequence(); })};
 
-  return it_package != windowPackages.end();
+  return it_package != packages.end();
 }
 
 void ClientDownloadConnection::showProgress(const uintmax_t recvPackages, const uintmax_t totalPackages) const {
